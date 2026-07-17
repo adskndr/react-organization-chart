@@ -6,6 +6,7 @@ declare interface IOrganizationChartWebPartStrings {
   showactionsLabel:string;
   showAllManagers:string;
   showGuestUsers:string;
+  departmentFilterLabel:string;
 }
 
 declare module 'OrganizationChartWebPartStrings' {
