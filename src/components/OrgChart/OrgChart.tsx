@@ -60,6 +60,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     showGuestUsers,
     startFromUser,
     showActionsBar,
+    departmentFilter,
     title,
     sp,
   }: IOrgChartProps = props;
@@ -91,6 +92,15 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           showGuestUsers,
         );
         if (profileResponse) {
+          const wDepartmentFilter: string = (departmentFilter ?? "").trim().toLowerCase();
+          const filteredDirectReports = wDepartmentFilter
+            ? profileResponse.reportsLists.filter(
+                (report) =>
+                  (report.department ?? "").trim().toLowerCase() ===
+                  wDepartmentFilter
+              )
+            : profileResponse.reportsLists;
+
           for (const managerInfo of profileResponse.managersList) {
             wRenderManagers.push(
               <React.Fragment key={`manager-${managerInfo.id}`}>
@@ -108,7 +118,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             );
           }
 
-          for (const directReport of profileResponse.reportsLists) {
+          for (const directReport of filteredDirectReports) {
             wRenderDirectReports.push(
               <PersonCard
                 key={`report-${directReport.id}`}
@@ -153,6 +163,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
       onUserSelected,
       currentUser,
       showActionsBar,
+      departmentFilter,
       orgChartClasses.separatorVertical,
     ]
   );
@@ -303,6 +314,13 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             </>
           )}
         </Stack>
+        {departmentFilter && renderDirectReports.length === 0 && (
+          <Stack horizontal horizontalAlign="center" styles={{ root: { padding: 10 } }}>
+            <Text variant="medium">
+              {`No direct reports found in department "${departmentFilter}".`}
+            </Text>
+          </Stack>
+        )}
         <Stack
           horizontal
           horizontalAlign="center"
