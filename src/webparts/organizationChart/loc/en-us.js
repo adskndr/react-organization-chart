@@ -7,5 +7,6 @@ define([], function() {
     "showactionsLabel": "Show actions bar",
     "showAllManagers": "Show all managers",
     "showGuestUsers": "Show guest users",
+    "departmentFilterLabel": "Filter by department (leave empty to show all)",
   }
 });
