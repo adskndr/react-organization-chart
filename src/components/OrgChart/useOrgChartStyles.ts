@@ -27,6 +27,23 @@ export const useOrgChartStyles = () => {
       borderWidth: 1,
       borderColor: currentTheme.neutralQuaternary,
     }),
+
+    coLeadGroup: mergeStyles({
+      // No border by design — the tighter gap (see tokens in OrgChart.tsx)
+      // is what visually groups the co-leads, without boxing them in.
+    }),
+
+    leadershipBox: mergeStyles({
+      border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
+      borderRadius: 4,
+      padding: 16,
+    }),
+
+    teamBox: mergeStyles({
+      border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
+      borderRadius: 4,
+      padding: 16,
+    }),
   });
 
   return { orgChartClasses };

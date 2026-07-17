@@ -50,11 +50,10 @@ export const usePersonaCardStyles = () => {
     tileCurrentUser: mergeStyles({
       minWidth: 260,
       maxWidth: '260px !important',
-      borderStyle: "solid",
-      borderWidth: 1,
+      borderStyle: "none",
+      borderWidth: 0,
       borderRadius: 0,
 
-      borderColor: currentTheme.themePrimary,
       boxShadow: "0 5px 15px rgba(50, 50, 90, .1)",
     }),
     tile: mergeStyles({
@@ -63,26 +62,21 @@ export const usePersonaCardStyles = () => {
       borderStyle: "solid",
       borderWidth: 1,
       borderRadius: 0,
-      borderColor: currentTheme.neutralQuaternaryAlt,
+      borderColor: "transparent",
       backgroundColor: currentTheme.white,
       boxShadow: "0 5px 15px rgba(50, 50, 90, .1)",
       selectors: {
         ":hover": {
           borderStyle: "solid",
           borderWidth: 1,
-          borderLeftStyle: "solid",
           borderRadius: 0,
           borderColor: currentTheme.themePrimary,
-          // borderColor: props.color,
-          //     borderTopWidth: 2,
         },
         ":focus": {
           borderStyle: "solid",
           borderWidth: 1,
-          borderLeftStyle: "solid",
           borderRadius: 0,
           borderColor: currentTheme.themePrimary,
-          // borderTopWidth: 2,
         },
         "@media(max-width : 480px)": {
           maxWidth: "100%",

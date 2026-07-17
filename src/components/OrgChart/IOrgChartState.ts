@@ -7,6 +7,8 @@ export interface IOrgChartState {
   isLoading: boolean;
   renderManagers: JSX.Element[];
   renderDirectReports: JSX.Element[];
+  renderPeers: JSX.Element[];
   error?: IErrorInfo;
   currentUser?: IUserInfo;
+  coLeadUser?: IUserInfo;
 }

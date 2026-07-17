@@ -23,6 +23,7 @@ type getUserProfileFunc = (
 type ProfileDataResponse = Maybe<{
   managersList: IUserInfo[];
   reportsLists: IUserInfo[];
+  peersList: IUserInfo[];
   currentUserProfile: IPersonProperties;
 }>;
 
@@ -54,16 +55,24 @@ export const useGetUserProperties = (): {
       // get Managers and Direct Reports
       let reportsLists: IUserInfo[] = [];
       let managersList: IUserInfo[] = [];
+      let peersList: IUserInfo[] = [];
 
       const wDirectReports: Maybe<string[]> =
         currentUserProfile && currentUserProfile.DirectReports;
       const wExtendedManagers: Maybe<string[]> =
         currentUserProfile && currentUserProfile.ExtendedManagers;
+      const wPeers: Maybe<string[]> =
+        currentUserProfile && currentUserProfile.Peers;
 
       // Get Direct Reports if exists
       if (wDirectReports && wDirectReports.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         reportsLists = await getDirectReports(sp, wDirectReports, showGuestUsers);
+      }
+      // Get Peers if exists (colleagues reporting to the same manager)
+      if (wPeers && wPeers.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        peersList = await getPeers(sp, wPeers, showGuestUsers);
       }
       // Get Managers if exists
       if (startUser && wExtendedManagers && wExtendedManagers.length > 0) {
@@ -77,7 +86,7 @@ export const useGetUserProperties = (): {
         );
       }
 
-      return { managersList, reportsLists, currentUserProfile };
+      return { managersList, reportsLists, peersList, currentUserProfile };
     },
     []
   );
@@ -119,6 +128,42 @@ const getDirectReports = async (
   }
   await execute();
   return sortBy(_reportsList, ["displayName"]);
+};
+
+const getPeers = async (
+  sp: SPFI,
+  peers: string[],
+  showGuestUsers: boolean
+): Promise<IUserInfo[]> => {
+  const _peersList: IUserInfo[] = [];
+  const [batchedSP, execute] = sp.batched();
+
+  for (const peer of peers) {
+    const cachePeer: Maybe<IPersonProperties> = await get(
+      `${peer}__orgchart__`
+    );
+    if (!cachePeer) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      batchedSP.profiles
+        .getPropertiesFor(peer)
+        .then(async (peerProfile: IPersonProperties) => {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          const userInfo = await manpingUserProperties(peerProfile);
+          if (!showGuestUsers && userInfo.userType === "Guest") return;
+
+          _peersList.push(userInfo);
+          await set(`${peer}__orgchart__`, peerProfile);
+        });
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      const userInfo = await manpingUserProperties(cachePeer);
+      if (!showGuestUsers && userInfo.userType === "Guest") continue;
+
+      _peersList.push(userInfo);
+    }
+  }
+  await execute();
+  return sortBy(_peersList, ["displayName"]);
 };
 
 const getExtendedManagers = async (

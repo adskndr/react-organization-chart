@@ -7,9 +7,15 @@ export interface IOrgChartProps {
   defaultUser: string;
   context: WebPartContext;
   startFromUser: IPropertyFieldGroupOrPerson[];
+  coLeadUser?: IPropertyFieldGroupOrPerson[];
   showAllManagers: boolean;
   showGuestUsers: boolean;
   showActionsBar: boolean;
-  departmentFilter?: string;
+  showPeers?: boolean;
+  departmentFilterSelected?: string[];
+  departmentFilterText?: string;
+  showTitle?: boolean;
+  titleHeadingLevel?: string;
+  titleFontSize?: number;
   sp: SPFI;
 }
