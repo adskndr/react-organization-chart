@@ -37,13 +37,18 @@ jobs:
         working-directory: ${{ steps.proj.outputs.dir }}
         run: npm ci
 
-      - name: Solution bündeln (bundle --ship)
+      - name: Solution bauen und packen
         working-directory: ${{ steps.proj.outputs.dir }}
-        run: npx gulp bundle --ship
-
-      - name: Solution packen (package-solution --ship)
-        working-directory: ${{ steps.proj.outputs.dir }}
-        run: npx gulp package-solution --ship
+        shell: bash
+        run: |
+          if [ -f gulpfile.js ]; then
+            echo "Gulp-basiertes SPFx-Projekt erkannt (SPFx <= 1.21)"
+            npx gulp bundle --ship
+            npx gulp package-solution --ship
+          else
+            echo "Heft-basiertes SPFx-Projekt erkannt (SPFx 1.22+)"
+            npm run build --if-present || (npx heft test --clean --production && npx heft package-solution --production)
+          fi
 
       - name: sppkg-Datei finden
         id: find
