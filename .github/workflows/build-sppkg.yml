@@ -1,0 +1,66 @@
+name: Build SPFx Package (sppkg)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repo auschecken
+        uses: actions/checkout@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Projektordner bestimmen
+        id: proj
+        shell: bash
+        run: |
+          if [ -f package.json ]; then
+            echo "dir=." >> "$GITHUB_OUTPUT"
+          elif [ -f react-organization-chart/package.json ]; then
+            echo "dir=react-organization-chart" >> "$GITHUB_OUTPUT"
+          else
+            echo "Kein package.json gefunden (weder im Root noch im Unterordner)"
+            exit 1
+          fi
+
+      - name: Abhängigkeiten installieren
+        working-directory: ${{ steps.proj.outputs.dir }}
+        run: npm ci
+
+      - name: Solution bündeln (bundle --ship)
+        working-directory: ${{ steps.proj.outputs.dir }}
+        run: npx gulp bundle --ship
+
+      - name: Solution packen (package-solution --ship)
+        working-directory: ${{ steps.proj.outputs.dir }}
+        run: npx gulp package-solution --ship
+
+      - name: sppkg-Datei finden
+        id: find
+        shell: bash
+        run: |
+          FILE=$(find "${{ steps.proj.outputs.dir }}" -type f -name "*.sppkg" | head -n 1)
+          if [ -z "$FILE" ]; then
+            echo "Keine .sppkg-Datei gefunden"
+            exit 1
+          fi
+          echo "Gefunden: $FILE"
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+
+      - name: sppkg als Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: sppkg-package
+          path: ${{ steps.find.outputs.file }}
+          if-no-files-found: error
+          retention-days: 30
