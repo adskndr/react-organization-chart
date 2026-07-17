@@ -1,4 +1,3 @@
-
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { SPFI } from "@pnp/sp";
 import { IPropertyFieldGroupOrPerson } from '@pnp/spfx-property-controls/lib/PropertyFieldPeoplePicker';
@@ -11,5 +10,6 @@ export interface IOrgChartProps {
   showAllManagers: boolean;
   showGuestUsers: boolean;
   showActionsBar: boolean;
+  departmentFilter?: string;
   sp: SPFI;
 }
