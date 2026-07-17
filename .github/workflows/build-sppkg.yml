@@ -47,7 +47,8 @@ jobs:
             npx gulp package-solution --ship
           else
             echo "Heft-basiertes SPFx-Projekt erkannt (SPFx 1.22+)"
-            npm run build --if-present || (npx heft test --clean --production && npx heft package-solution --production)
+            npm run build -- --production
+            npm run package-solution -- --production
           fi
 
       - name: sppkg-Datei finden
