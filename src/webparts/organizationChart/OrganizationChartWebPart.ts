@@ -27,6 +27,7 @@ export interface IOrganizationChartWebPartProps {
   showAllManagers: boolean;
   showGuestUsers: boolean;
   showActionsBar: boolean;
+  departmentFilter: string;
 }
 
 export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrganizationChartWebPartProps> {
@@ -49,6 +50,7 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
         showGuestUsers: this.properties.showGuestUsers,
         context: this.context,
         showActionsBar: this.properties.showActionsBar,
+        departmentFilter: this.properties.departmentFilter,
         sp: this.sp,
       }
     );
@@ -98,6 +100,9 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
                 }),
                 PropertyPaneToggle("showActionsBar", {
                   label: strings.showactionsLabel,
+                }),
+                PropertyPaneTextField("departmentFilter", {
+                  label: strings.departmentFilterLabel,
                 }),
               ],
             },
