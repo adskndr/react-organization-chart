@@ -75,12 +75,8 @@ const orgChartClasses = mergeStyleSets({
     width: 0,
     height: 20,
     borderLeftStyle: "solid",
-    borderLeftWidth: 2,
-    // Hard-coded rather than currentTheme.white: that theme property can be
-    // undefined depending on the site theme / load timing, which silently
-    // drops the border color instead of erroring — making the line
-    // invisible for no obvious reason.
-    borderLeftColor: "#ffffff",
+    borderLeftWidth: 3,
+    borderLeftColor: #ffff,
   }),
 });
 
