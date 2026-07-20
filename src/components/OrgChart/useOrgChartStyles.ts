@@ -21,14 +21,14 @@ const orgChartClasses = mergeStyleSets({
   }),
 
   // Person cards are now a fixed size, so this group just needs a bit more
-  // breathing room between co-leads — no border needed to read as a pair.
+  // breathing room between co-leads - no border needed to read as a pair.
   coLeadGroup: mergeStyles({
     display: "flex",
     alignItems: "center",
     columnGap: "16px",
   }),
 
-  // No fixed width/height here anymore — with the person card itself now a
+  // No fixed width/height here anymore - with the person card itself now a
   // fixed size, the box naturally hugs its content (padding + border only),
   // so it always matches however many managers are actually shown.
   managerBox: mergeStyles({
