@@ -76,7 +76,7 @@ const orgChartClasses = mergeStyleSets({
     height: 20,
     borderLeftStyle: "solid",
     borderLeftWidth: 3,
-    borderLeftColor: #ffff,
+    borderLeftColor: "#ffffff",
   }),
 });
 
