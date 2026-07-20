@@ -5,7 +5,6 @@ declare interface IOrganizationChartWebPartStrings {
   coLeadUserLabel:string;
   managerLevelsLabel:string;
   showactionsLabel:string;
-  showGuestUsers:string;
   showPeersLabel:string;
   departmentFilterLabel:string;
   departmentFilterTextLabel:string;

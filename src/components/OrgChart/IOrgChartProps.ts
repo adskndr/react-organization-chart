@@ -9,7 +9,6 @@ export interface IOrgChartProps {
   startFromUser: IPropertyFieldGroupOrPerson[];
   coLeadUser?: IPropertyFieldGroupOrPerson[];
   managerLevels?: number;
-  showGuestUsers: boolean;
   showActionsBar: boolean;
   showPeers?: boolean;
   departmentFilterSelected?: string[];

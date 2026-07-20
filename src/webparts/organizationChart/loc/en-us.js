@@ -6,7 +6,6 @@ define([], function() {
     "coLeadUserLabel": "Co-lead (optional) — shown side by side, their team is merged in below",
     "managerLevelsLabel": "Manager levels above (1 = direct manager, 2 = two levels up, ...)",
     "showactionsLabel": "Show actions bar",
-    "showGuestUsers": "Show guest users",
     "showPeersLabel": "Show colleagues (peers)",
     "departmentFilterLabel": "Filter by department(s)",
     "departmentFilterTextLabel": "Or filter by free text",

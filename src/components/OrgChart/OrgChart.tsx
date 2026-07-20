@@ -55,7 +55,6 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
   const {
     context,
     managerLevels,
-    showGuestUsers,
     startFromUser,
     coLeadUser: coLeadUserPicker,
     showActionsBar,
@@ -142,7 +141,6 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           sp,
           selectedUser,
           0,
-          showGuestUsers,
         );
         if (profileResponse) {
           // Merge direct reports of the main lead and, if configured and we're
@@ -273,7 +271,6 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
       getUserProfile,
       startFromUserId,
       coLeadUserId,
-      showGuestUsers,
       onUserSelected,
       currentUser,
       showActionsBar,
@@ -287,6 +284,8 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
   );
 
   React.useEffect(() => {
+    let cancelled = false;
+
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async () => {
       try {
@@ -308,13 +307,16 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         const profileResponse = await getUserProfile(
           sp,
           startFromUserId,
-          managerLevels,
-          showGuestUsers
+          managerLevels
         );
+        if (cancelled) return;
+
         const wCurrentUser: IUserInfo = await manpingUserProperties(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           profileResponse!.currentUserProfile
         );
+        if (cancelled) return;
+
         dispatch({
           type: EOrgChartTypes.SET_CURRENT_USER,
           payload: wCurrentUser,
@@ -323,26 +325,24 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         // The managers row is always anchored to the configured "start from
         // user" — level 1 is their direct manager, level 2 the next one up,
         // and so on — regardless of which card is currently being browsed.
-        // Reversed so the highest level renders at the top of the screen,
-        // closest level directly above the leadership box.
-        const wRenderManagers: JSX.Element[] = [
+        // getExtendedManagers already returns them top-to-nearest, which is
+        // exactly the order we want top-to-bottom on screen.
+        const wRenderManagers: JSX.Element[] = (
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          ...profileResponse!.managersList
-        ]
-          .reverse()
-          .map((managerInfo) => (
-            <React.Fragment key={`manager-${managerInfo.id}`}>
-              <PersonCard
-                userInfo={managerInfo}
-                onUserSelected={onUserSelected}
-                selectedUser={currentUser}
-                showActionsBar={showActionsBar}
-                graphClient={graphClient}
-                sp={sp}
-               />
-              <div className={orgChartClasses.separatorVertical} />
-            </React.Fragment>
-          ));
+          profileResponse!.managersList
+        ).map((managerInfo) => (
+          <React.Fragment key={`manager-${managerInfo.id}`}>
+            <PersonCard
+              userInfo={managerInfo}
+              onUserSelected={onUserSelected}
+              selectedUser={currentUser}
+              showActionsBar={showActionsBar}
+              graphClient={graphClient}
+              sp={sp}
+             />
+            <div className={orgChartClasses.separatorVertical} />
+          </React.Fragment>
+        ));
         dispatch({
           type: EOrgChartTypes.SET_RENDER_MANAGERS,
           payload: wRenderManagers,
@@ -353,6 +353,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           payload: { hasError: false, errorMessage: "" },
         });
       } catch (error) {
+        if (cancelled) return;
         console.log(error);
         dispatch({
           type: EOrgChartTypes.SET_IS_LOADING,
@@ -367,16 +368,20 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         });
       }
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     getUserProfile,
     sp,
     startFromUserId,
     managerLevels,
-    showGuestUsers,
     showActionsBar,
     graphClient,
     orgChartClasses.separatorVertical,
   ]);
+
 
   React.useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -483,41 +488,36 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             verticalAlign="center"
             tokens={{ childrenGap: 15 }}
             wrap
+            className={orgChartClasses.leadershipBox}
           >
             {renderPeers}
-            <Stack
-              horizontal
-              horizontalAlign="center"
-              verticalAlign="center"
-              tokens={{ childrenGap: 15 }}
-              className={orgChartClasses.leadershipBox}
-            >
+            <PersonCard
+              key={`current-${currentUser?.id}`}
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              userInfo={currentUser!}
+              onUserSelected={onUserSelected}
+              selectedUser={currentUser}
+              showActionsBar={showActionsBar}
+              graphClient={graphClient}
+              sp={sp}
+             />
+            {coLeadUser && (
               <PersonCard
-                key={`current-${currentUser?.id}`}
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                userInfo={currentUser!}
+                key={`co-lead-${coLeadUser.id}`}
+                userInfo={coLeadUser}
                 onUserSelected={onUserSelected}
                 selectedUser={currentUser}
                 showActionsBar={showActionsBar}
                 graphClient={graphClient}
                 sp={sp}
                />
-              {coLeadUser && (
-                <PersonCard
-                  key={`co-lead-${coLeadUser.id}`}
-                  userInfo={coLeadUser}
-                  onUserSelected={onUserSelected}
-                  selectedUser={currentUser}
-                  showActionsBar={showActionsBar}
-                  graphClient={graphClient}
-                sp={sp}
-                 />
-              )}
-            </Stack>
+            )}
           </Stack>
         </Stack>
         {renderDirectReports.length > 0 && (
-          <div className={orgChartClasses.teamSeparator} />
+          <Stack horizontalAlign="center">
+            <div className={orgChartClasses.boxConnector} />
+          </Stack>
         )}
         {isDepartmentFilterActive && renderDirectReports.length === 0 && (
           <Stack horizontal horizontalAlign="center" styles={{ root: { padding: 10 } }}>

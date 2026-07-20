@@ -15,8 +15,7 @@ import { IPersonProperties } from "../models/IPersonProperties";
 type getUserProfileFunc = (
   sp: SPFI,
   currentUser: string,
-  managerLevels?: number,
-  showGuestUsers?: boolean
+  managerLevels?: number
 ) => Promise<ProfileDataResponse>;
 
 type ProfileDataResponse = Maybe<{
@@ -33,8 +32,7 @@ export const useGetUserProperties = (): {
     async (
       sp: SPFI,
       currentUser: string,
-      managerLevels: number = 0,
-      showGuestUsers: boolean = false
+      managerLevels: number = 0
     ): Promise<ProfileDataResponse> => {
       if (!currentUser) return;
       const loginName = currentUser;
@@ -64,23 +62,22 @@ export const useGetUserProperties = (): {
       // Get Direct Reports if exists
       if (wDirectReports && wDirectReports.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        reportsLists = await getDirectReports(sp, wDirectReports, showGuestUsers);
+        reportsLists = await getDirectReports(sp, wDirectReports);
       }
       // Get Peers if exists (colleagues reporting to the same manager)
       if (wPeers && wPeers.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        peersList = await getPeers(sp, wPeers, showGuestUsers);
+        peersList = await getPeers(sp, wPeers);
       }
       // Get Managers if exists — ExtendedManagers is ordered starting with the
-      // immediate manager, so the first `managerLevels` entries are exactly
-      // "N levels up" from this person.
+      // top of the hierarchy down to the immediate manager, so the last
+      // `managerLevels` entries are exactly "N levels up" from this person.
       if (managerLevels > 0 && wExtendedManagers && wExtendedManagers.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         managersList = await getExtendedManagers(
           sp,
           wExtendedManagers,
-          managerLevels,
-          showGuestUsers
+          managerLevels
         );
       }
 
@@ -94,8 +91,7 @@ export const useGetUserProperties = (): {
 
 const getDirectReports = async (
   sp: SPFI,
-  directReports: string[],
-  showGuestUsers: boolean
+  directReports: string[]
 ): Promise<IUserInfo[]> => {
   const _reportsList: IUserInfo[] = [];
   const [batchedSP, execute] = sp.batched();
@@ -111,16 +107,12 @@ const getDirectReports = async (
         .then(async (directReport: IPersonProperties) => {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           const userInfo = await manpingUserProperties(directReport);
-          if (!showGuestUsers && userInfo.userType === "Guest") return;
-
           _reportsList.push(userInfo);
           await set(`${userReport}__orgchart__`, directReport);
         });
     } else {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       const userInfo = await manpingUserProperties(cacheDirectReport);
-      if (!showGuestUsers && userInfo.userType === "Guest") continue;
-
       _reportsList.push(userInfo);
     }
   }
@@ -130,8 +122,7 @@ const getDirectReports = async (
 
 const getPeers = async (
   sp: SPFI,
-  peers: string[],
-  showGuestUsers: boolean
+  peers: string[]
 ): Promise<IUserInfo[]> => {
   const _peersList: IUserInfo[] = [];
   const [batchedSP, execute] = sp.batched();
@@ -147,16 +138,12 @@ const getPeers = async (
         .then(async (peerProfile: IPersonProperties) => {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           const userInfo = await manpingUserProperties(peerProfile);
-          if (!showGuestUsers && userInfo.userType === "Guest") return;
-
           _peersList.push(userInfo);
           await set(`${peer}__orgchart__`, peerProfile);
         });
     } else {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       const userInfo = await manpingUserProperties(cachePeer);
-      if (!showGuestUsers && userInfo.userType === "Guest") continue;
-
       _peersList.push(userInfo);
     }
   }
@@ -167,13 +154,15 @@ const getPeers = async (
 const getExtendedManagers = async (
   sp: SPFI,
   extendedManagers: string[],
-  managerLevels: number,
-  showGuestUsers: boolean
+  managerLevels: number
 ): Promise<IUserInfo[]> => {
   const wManagers: IUserInfo[] = [];
-  // extendedManagers is ordered starting with the immediate manager, so the
-  // first `managerLevels` entries are exactly the requested number of levels.
-  const levelsToFetch = extendedManagers.slice(0, Math.max(0, managerLevels));
+  // ExtendedManagers is ordered starting with the TOP of the hierarchy down
+  // to the immediate manager (last entry = nearest manager). So "N levels
+  // above" means the last N entries, kept in that same (top-to-near) order —
+  // which is exactly the order we want for top-to-bottom rendering.
+  const levelsToFetch =
+    managerLevels > 0 ? extendedManagers.slice(-managerLevels) : [];
   const [batchedSP, execute] = sp.batched();
 
   for (const manager of levelsToFetch) {
@@ -187,22 +176,18 @@ const getExtendedManagers = async (
         .then(async (_profile: IPersonProperties) => {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           const userInfo = await manpingUserProperties(_profile);
-          if (!showGuestUsers && userInfo.userType === "Guest") return;
-
           wManagers.push(userInfo);
           await set(`${manager}__orgchart__`, _profile);
         });
     } else {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       const userInfo = await manpingUserProperties(cacheManager);
-      if (!showGuestUsers && userInfo.userType === "Guest") continue;
-
       wManagers.push(userInfo);
     }
   }
   await execute();
   // Batched/cached lookups can resolve out of order, so re-sort by the
-  // original chain order before returning ("nearest manager first").
+  // original chain order before returning ("top level first").
   const chainOrder = new Map(levelsToFetch.map((login, idx) => [login, idx]));
   return wManagers.sort(
     (a, b) => (chainOrder.get(a.id ?? "") ?? 0) - (chainOrder.get(b.id ?? "") ?? 0)

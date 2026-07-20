@@ -19,7 +19,6 @@
     "officeFabricIconFontName": "Org",
     "properties": {
       "managerLevels": 1,
-      "showGuestUsers": false,
       "showPeers": false,
       "showActionsBar": true
     }
