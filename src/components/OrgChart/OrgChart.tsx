@@ -67,13 +67,17 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
 
 
   const startFromUserId: Maybe<string> = React.useMemo(
-    () => startFromUser && startFromUser[0].id,
+    () => startFromUser && startFromUser[0] && startFromUser[0].id,
     [startFromUser]
   );
-  const coLeadUserId: Maybe<string> = React.useMemo(
-    () => coLeadUserPicker && coLeadUserPicker[0] && coLeadUserPicker[0].id,
-    [coLeadUserPicker]
-  );
+  const coLeadUserId: Maybe<string> = React.useMemo(() => {
+    const id =
+      coLeadUserPicker && coLeadUserPicker[0] && coLeadUserPicker[0].id;
+    // If someone accidentally picks the same person as both "start from
+    // user" and "co-lead", ignore the co-lead rather than showing the same
+    // person twice side by side.
+    return id && id !== startFromUserId ? id : undefined;
+  }, [coLeadUserPicker, startFromUserId]);
   const onUserSelected = React.useCallback((selectedUser: IUserInfo) => {
     dispatch({
       type: EOrgChartTypes.SET_CURRENT_USER,
@@ -289,7 +293,16 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async () => {
       try {
-        if (startFromUserId === undefined)  return;
+        if (startFromUserId === undefined) {
+          // The person was removed from "Start from user" — clear out
+          // whatever was shown before instead of leaving it stale.
+          dispatch({ type: EOrgChartTypes.SET_CURRENT_USER, payload: undefined });
+          dispatch({ type: EOrgChartTypes.SET_RENDER_MANAGERS, payload: [] });
+          dispatch({ type: EOrgChartTypes.SET_RENDER_DIRECT_REPORTS, payload: [] });
+          dispatch({ type: EOrgChartTypes.SET_RENDER_PEERS, payload: [] });
+          dispatch({ type: EOrgChartTypes.SET_IS_LOADING, payload: false });
+          return;
+        }
         if (startFromUserId === ''){
           dispatch({
             type: EOrgChartTypes.SET_IS_LOADING,
@@ -307,7 +320,8 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         const profileResponse = await getUserProfile(
           sp,
           startFromUserId,
-          managerLevels
+          managerLevels,
+          false // reports/peers aren't needed here — loadOrgChart fetches those
         );
         if (cancelled) return;
 
@@ -333,9 +347,8 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         const wRenderManagers: JSX.Element[] = [];
         managersList.forEach((managerInfo, index) => {
           wRenderManagers.push(
-            <Stack
+            <div
               key={`manager-box-${managerInfo.id}`}
-              horizontalAlign="center"
               className={orgChartClasses.managerBox}
             >
               <PersonCard
@@ -346,7 +359,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                 graphClient={graphClient}
                 sp={sp}
                />
-            </Stack>
+            </div>
           );
           if (index < managersList.length - 1) {
             wRenderManagers.push(
@@ -397,6 +410,8 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
 
 
   React.useEffect(() => {
+    let cancelled = false;
+
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async () => {
       if (!coLeadUserId) {
@@ -405,21 +420,32 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
       }
       try {
         const profileResponse = await getUserProfile(sp, coLeadUserId);
+        if (cancelled) return;
+
         const wCoLeadUser: IUserInfo = await manpingUserProperties(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           profileResponse!.currentUserProfile
         );
+        if (cancelled) return;
+
         dispatch({
           type: EOrgChartTypes.SET_CO_LEAD_USER,
           payload: wCoLeadUser,
         });
       } catch (error) {
+        if (cancelled) return;
         console.log(error);
       }
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [getUserProfile, sp, coLeadUserId]);
 
   React.useEffect(() => {
+    let cancelled = false;
+
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async () => {
       if (!currentUser || !currentUser.id) return;
@@ -431,6 +457,8 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
       const { wRenderDirectReports, wRenderPeers } = await loadOrgChart(
         currentUser.id
       );
+      if (cancelled) return;
+
       dispatch({
         type: EOrgChartTypes.SET_RENDER_DIRECT_REPORTS,
         payload: wRenderDirectReports,
@@ -444,9 +472,13 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         payload: false,
       });
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [currentUser, loadOrgChart]);
 
-  if (!startFromUser) {
+  if (!startFromUserId) {
     return (
       <Placeholder
       iconName="Edit"
@@ -502,21 +534,9 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
               <div className={orgChartClasses.boxConnector} />
             </>
           )}
-          <Stack
-            horizontal
-            horizontalAlign="center"
-            verticalAlign="center"
-            tokens={{ childrenGap: 15 }}
-            wrap
-            className={orgChartClasses.leadershipBox}
-          >
+          <div className={orgChartClasses.leadershipBox}>
             {renderPeers}
-            <Stack
-              horizontal
-              verticalAlign="center"
-              tokens={{ childrenGap: 15 }}
-              styles={{ root: { flexShrink: 0 } }}
-            >
+            <div className={orgChartClasses.leadershipGroup}>
               <PersonCard
                 key={`current-${currentUser?.id}`}
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -538,8 +558,8 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                   sp={sp}
                  />
               )}
-            </Stack>
-          </Stack>
+            </div>
+          </div>
         </Stack>
         {renderDirectReports.length > 0 && (
           <Stack horizontalAlign="center">

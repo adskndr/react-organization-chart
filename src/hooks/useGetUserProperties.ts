@@ -12,10 +12,31 @@ import { IPersonProperties } from "../models/IPersonProperties";
 // Hook to get user profile information
 // *************************************************************************************/
 
+// Cached profile data expires after this long, so photo/title/manager changes
+// eventually show up without needing to manually clear browser storage.
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+interface ICacheEntry<T> {
+  value: T;
+  cachedAt: number;
+}
+
+const getCached = async <T,>(key: string): Promise<Maybe<T>> => {
+  const entry: Maybe<ICacheEntry<T>> = await get(key);
+  if (!entry) return undefined;
+  if (Date.now() - entry.cachedAt > CACHE_TTL_MS) return undefined;
+  return entry.value;
+};
+
+const setCached = async <T,>(key: string, value: T): Promise<void> => {
+  await set(key, { value, cachedAt: Date.now() } as ICacheEntry<T>);
+};
+
 type getUserProfileFunc = (
   sp: SPFI,
   currentUser: string,
-  managerLevels?: number
+  managerLevels?: number,
+  includeReportsAndPeers?: boolean
 ) => Promise<ProfileDataResponse>;
 
 type ProfileDataResponse = Maybe<{
@@ -32,18 +53,18 @@ export const useGetUserProperties = (): {
     async (
       sp: SPFI,
       currentUser: string,
-      managerLevels: number = 0
+      managerLevels: number = 0,
+      includeReportsAndPeers: boolean = true
     ): Promise<ProfileDataResponse> => {
       if (!currentUser) return;
       const loginName = currentUser;
-      const cacheCurrentUser: Maybe<IPersonProperties> = await get(
+      const cacheCurrentUser: Maybe<IPersonProperties> = await getCached(
         `${loginName}__orgchart__`
       );
       let currentUserProfile: IPersonProperties;
       if (!cacheCurrentUser) {
         currentUserProfile = await sp.profiles.getPropertiesFor(loginName);
-        // console.log(currentUserProfile);
-        await set(`${loginName}__orgchart__`, currentUserProfile);
+        await setCached(`${loginName}__orgchart__`, currentUserProfile);
       } else {
         currentUserProfile = cacheCurrentUser;
       }
@@ -59,15 +80,19 @@ export const useGetUserProperties = (): {
       const wPeers: Maybe<string[]> =
         currentUserProfile && currentUserProfile.Peers;
 
-      // Get Direct Reports if exists
-      if (wDirectReports && wDirectReports.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        reportsLists = await getDirectReports(sp, wDirectReports);
-      }
-      // Get Peers if exists (colleagues reporting to the same manager)
-      if (wPeers && wPeers.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        peersList = await getPeers(sp, wPeers);
+      // Get Direct Reports and Peers if requested — callers that only need
+      // e.g. the manager chain can skip this to avoid fetching (and mapping)
+      // every direct report/peer profile for nothing.
+      if (includeReportsAndPeers) {
+        if (wDirectReports && wDirectReports.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          reportsLists = await getDirectReports(sp, wDirectReports);
+        }
+        // Peers (colleagues reporting to the same manager)
+        if (wPeers && wPeers.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          peersList = await getPeers(sp, wPeers);
+        }
       }
       // Get Managers if exists — ExtendedManagers is ordered starting with the
       // top of the hierarchy down to the immediate manager, so the last
@@ -97,7 +122,7 @@ const getDirectReports = async (
   const [batchedSP, execute] = sp.batched();
   
   for (const userReport of directReports) {
-    const cacheDirectReport: Maybe<IPersonProperties> = await get(
+    const cacheDirectReport: Maybe<IPersonProperties> = await getCached(
       `${userReport}__orgchart__`
     );
     if (!cacheDirectReport) {
@@ -108,7 +133,7 @@ const getDirectReports = async (
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           const userInfo = await manpingUserProperties(directReport);
           _reportsList.push(userInfo);
-          await set(`${userReport}__orgchart__`, directReport);
+          await setCached(`${userReport}__orgchart__`, directReport);
         });
     } else {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -128,7 +153,7 @@ const getPeers = async (
   const [batchedSP, execute] = sp.batched();
 
   for (const peer of peers) {
-    const cachePeer: Maybe<IPersonProperties> = await get(
+    const cachePeer: Maybe<IPersonProperties> = await getCached(
       `${peer}__orgchart__`
     );
     if (!cachePeer) {
@@ -139,7 +164,7 @@ const getPeers = async (
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           const userInfo = await manpingUserProperties(peerProfile);
           _peersList.push(userInfo);
-          await set(`${peer}__orgchart__`, peerProfile);
+          await setCached(`${peer}__orgchart__`, peerProfile);
         });
     } else {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -166,7 +191,7 @@ const getExtendedManagers = async (
   const [batchedSP, execute] = sp.batched();
 
   for (const manager of levelsToFetch) {
-    const cacheManager: Maybe<IPersonProperties> = await get(
+    const cacheManager: Maybe<IPersonProperties> = await getCached(
       `${manager}__orgchart__`
     );
     if (!cacheManager) {
@@ -177,7 +202,7 @@ const getExtendedManagers = async (
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           const userInfo = await manpingUserProperties(_profile);
           wManagers.push(userInfo);
-          await set(`${manager}__orgchart__`, _profile);
+          await setCached(`${manager}__orgchart__`, _profile);
         });
     } else {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -209,8 +234,6 @@ function userTypeMapper(userType: string | undefined) {
 export const manpingUserProperties = async (
   userProperties: IPersonProperties
 ): Promise<IUserInfo> => {
-  console.log(userProperties);
-
   return {
     displayName: userProperties.DisplayName as string,
     email: userProperties.Email as string,
@@ -218,10 +241,10 @@ export const manpingUserProperties = async (
     pictureUrl: userProperties.PictureUrl,
     id: userProperties.AccountName,
     userUrl: userProperties.UserUrl,
-    numberDirectReports: userProperties.DirectReports.length,
-    hasDirectReports: userProperties.DirectReports.length > 0 ? true : false,
-    hasPeers: userProperties.Peers.length > 0 ? true : false,
-    numberPeers: userProperties.Peers.length,
+    numberDirectReports: userProperties.DirectReports?.length ?? 0,
+    hasDirectReports: (userProperties.DirectReports?.length ?? 0) > 0,
+    hasPeers: (userProperties.Peers?.length ?? 0) > 0,
+    numberPeers: userProperties.Peers?.length ?? 0,
     department:
       filter(userProperties?.UserProfileProperties, { Key: "Department" })[0]
         ?.Value ?? "",

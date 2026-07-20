@@ -2,77 +2,79 @@ import { IButtonStyles, IDocumentCardActionsStyles, IStackStyles, mergeStyles, m
 import type { Theme } from "spfx-uifabric-themes";
 const currentTheme: Theme = window.__themeState__.theme;
 
+// All computed once at module load instead of on every render of every
+// PersonCard — this hook runs once per person shown in the chart, so this
+// avoids re-running mergeStyleSets/mergeStyles dozens of times per render.
+const stackPersonaStyles: Partial<IStackStyles> = {
+  root: { padding: 15 },
+};
+
+const buttonStyles: IButtonStyles = {
+  icon: {
+    fontSize: 12,
+  },
+  iconHovered: {
+    fontWeight: 600,
+  },
+};
+
+const documentCardActionStyles: Partial<IDocumentCardActionsStyles> = {
+  root: {
+    height: 34,
+    padding: 0,
+    backgroundColor: currentTheme.neutralLighterAlt,
+    borderTopWidth: 1,
+    borderTopStyle: "solid",
+    borderTopColor: currentTheme.neutralLight,
+    width: "100%",
+  },
+};
+
+const personaCardStyles = mergeStyleSets({
+  separatorHorizontal: mergeStyles({
+    width: "100%",
+    borderWidth: 0.5,
+    borderStyle: "solid",
+    borderColor: currentTheme.neutralLight,
+  }),
+  iconStyles: mergeStyles({
+    fontSize: 16, color: currentTheme.themePrimary
+  }),
+  tile: mergeStyles({
+    minWidth: 260,
+    maxWidth: '260px !important',
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderRadius: 0,
+    borderColor: "transparent",
+    backgroundColor: currentTheme.white,
+    boxShadow: "0 5px 15px rgba(50, 50, 90, .1)",
+    selectors: {
+      ":hover": {
+        borderStyle: "solid",
+        borderWidth: 1,
+        borderRadius: 0,
+        borderColor: currentTheme.themePrimary,
+      },
+      ":focus": {
+        borderStyle: "solid",
+        borderWidth: 1,
+        borderRadius: 0,
+        borderColor: currentTheme.themePrimary,
+      },
+      "@media(max-width : 480px)": {
+        maxWidth: "100%",
+        minWidth: "100%",
+      },
+      "@media((min-width : 481px) and (max-width : 12480px))": {
+        maxWidth: 260,
+        minWidth: "min(50%, 260px)",
+      },
+    }
+  }),
+});
+
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/explicit-function-return-type
 export const usePersonaCardStyles = () => {
-
-  const stackPersonaStyles: Partial<IStackStyles> = {
-    root: { padding: 15 },
-  };
-
-  const buttonStyles: IButtonStyles = {
-    icon: {
-      fontSize: 12,
-    },
-    iconHovered: {
-      fontWeight: 600,
-    },
-  };
-
-  const documentCardActionStyles: Partial<IDocumentCardActionsStyles> = {
-    root: {
-      height: 34,
-      padding: 0,
-      backgroundColor: currentTheme.neutralLighterAlt,
-      borderTopWidth: 1,
-      borderTopStyle: "solid",
-      borderTopColor: currentTheme.neutralLight,
-      width: "100%",
-    },
-  };
-
-  const personaCardStyles = mergeStyleSets({
-    separatorHorizontal: mergeStyles({
-      width: "100%",
-      borderWidth: 0.5,
-      borderStyle: "solid",
-      borderColor: currentTheme.neutralLight,
-    }),
-    iconStyles: mergeStyles({
-      fontSize: 16, color: currentTheme.themePrimary
-    }),
-    tile: mergeStyles({
-      minWidth: 260,
-      maxWidth: '260px !important',
-      borderStyle: "solid",
-      borderWidth: 1,
-      borderRadius: 0,
-      borderColor: "transparent",
-      backgroundColor: currentTheme.white,
-      boxShadow: "0 5px 15px rgba(50, 50, 90, .1)",
-      selectors: {
-        ":hover": {
-          borderStyle: "solid",
-          borderWidth: 1,
-          borderRadius: 0,
-          borderColor: currentTheme.themePrimary,
-        },
-        ":focus": {
-          borderStyle: "solid",
-          borderWidth: 1,
-          borderRadius: 0,
-          borderColor: currentTheme.themePrimary,
-        },
-        "@media(max-width : 480px)": {
-          maxWidth: "100%",
-          minWidth: "100%",
-        },
-        "@media((min-width : 481px) and (max-width : 12480px))": {
-          maxWidth: 260,
-          minWidth: "min(50%, 260px)",
-        },
-      }
-    }),
-  });
-
   return {documentCardActionStyles, personaCardStyles, buttonStyles, stackPersonaStyles };
 };
