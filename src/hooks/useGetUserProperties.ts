@@ -195,7 +195,7 @@ const getExtendedManagers = async (
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function userTypeMapper(userType: string) {
+function userTypeMapper(userType: string | undefined) {
   switch (userType) {
     case "0":
       return "Employee";
@@ -224,25 +224,25 @@ export const manpingUserProperties = async (
     numberPeers: userProperties.Peers.length,
     department:
       filter(userProperties?.UserProfileProperties, { Key: "Department" })[0]
-        .Value ?? "",
+        ?.Value ?? "",
     workPhone:
       filter(userProperties?.UserProfileProperties, { Key: "WorkPhone" })[0]
-        .Value ?? "",
+        ?.Value ?? "",
     cellPhone:
       filter(userProperties?.UserProfileProperties, { Key: "CellPhone" })[0]
-        .Value ?? "",
+        ?.Value ?? "",
     location:
       filter(userProperties?.UserProfileProperties, { Key: "SPS-Location" })[0]
-        .Value ?? "",
+        ?.Value ?? "",
     office:
       filter(userProperties?.UserProfileProperties, { Key: "Office" })[0]
-        .Value ?? "",
+        ?.Value ?? "",
     manager:
       filter(userProperties?.UserProfileProperties, { Key: "Manager" })[0]
-        .Value ?? "",
+        ?.Value ?? "",
     userType: userTypeMapper(
       filter(userProperties?.UserProfileProperties, { Key: "SPS-UserType" })[0]
-        .Value
+        ?.Value
     ),
     loginName: userProperties.loginName,
   };

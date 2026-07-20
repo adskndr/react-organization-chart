@@ -326,21 +326,37 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         // user" — level 1 is their direct manager, level 2 the next one up,
         // and so on — regardless of which card is currently being browsed.
         // getExtendedManagers already returns them top-to-nearest, which is
-        // exactly the order we want top-to-bottom on screen.
-        const wRenderManagers: JSX.Element[] = (
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          profileResponse!.managersList
-        ).map((managerInfo) => (
-          <PersonCard
-            key={`manager-${managerInfo.id}`}
-            userInfo={managerInfo}
-            onUserSelected={onUserSelected}
-            selectedUser={currentUser}
-            showActionsBar={showActionsBar}
-            graphClient={graphClient}
-            sp={sp}
-           />
-        ));
+        // exactly the order we want top-to-bottom on screen. Each manager
+        // gets their own box (same size, same style) connected by a short
+        // vertical line — this stays true whether there's 1 level or several.
+        const managersList = profileResponse!.managersList; // eslint-disable-line @typescript-eslint/no-non-null-assertion
+        const wRenderManagers: JSX.Element[] = [];
+        managersList.forEach((managerInfo, index) => {
+          wRenderManagers.push(
+            <Stack
+              key={`manager-box-${managerInfo.id}`}
+              horizontalAlign="center"
+              className={orgChartClasses.managerBox}
+            >
+              <PersonCard
+                userInfo={managerInfo}
+                onUserSelected={onUserSelected}
+                selectedUser={currentUser}
+                showActionsBar={showActionsBar}
+                graphClient={graphClient}
+                sp={sp}
+               />
+            </Stack>
+          );
+          if (index < managersList.length - 1) {
+            wRenderManagers.push(
+              <div
+                key={`manager-connector-${managerInfo.id}`}
+                className={orgChartClasses.boxConnector}
+               />
+            );
+          }
+        });
         dispatch({
           type: EOrgChartTypes.SET_RENDER_MANAGERS,
           payload: wRenderManagers,
@@ -480,12 +496,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         <Stack horizontalAlign="center" verticalAlign="center">
           {renderManagers.length > 0 && (
             <>
-              <Stack
-                horizontalAlign="center"
-                verticalAlign="center"
-                tokens={{ childrenGap: 12 }}
-                className={orgChartClasses.managerBox}
-              >
+              <Stack horizontalAlign="center" verticalAlign="center">
                 {renderManagers}
               </Stack>
               <div className={orgChartClasses.boxConnector} />
@@ -500,27 +511,34 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             className={orgChartClasses.leadershipBox}
           >
             {renderPeers}
-            <PersonCard
-              key={`current-${currentUser?.id}`}
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              userInfo={currentUser!}
-              onUserSelected={onUserSelected}
-              selectedUser={currentUser}
-              showActionsBar={showActionsBar}
-              graphClient={graphClient}
-              sp={sp}
-             />
-            {coLeadUser && (
+            <Stack
+              horizontal
+              verticalAlign="center"
+              tokens={{ childrenGap: 15 }}
+              styles={{ root: { flexShrink: 0 } }}
+            >
               <PersonCard
-                key={`co-lead-${coLeadUser.id}`}
-                userInfo={coLeadUser}
+                key={`current-${currentUser?.id}`}
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                userInfo={currentUser!}
                 onUserSelected={onUserSelected}
                 selectedUser={currentUser}
                 showActionsBar={showActionsBar}
                 graphClient={graphClient}
                 sp={sp}
                />
-            )}
+              {coLeadUser && (
+                <PersonCard
+                  key={`co-lead-${coLeadUser.id}`}
+                  userInfo={coLeadUser}
+                  onUserSelected={onUserSelected}
+                  selectedUser={currentUser}
+                  showActionsBar={showActionsBar}
+                  graphClient={graphClient}
+                  sp={sp}
+                 />
+              )}
+            </Stack>
           </Stack>
         </Stack>
         {renderDirectReports.length > 0 && (
