@@ -35,15 +35,15 @@
           "0338da15-07f9-4a53-b267-d790fb495cca"
         ]
       }
+    ],
+    "webApiPermissionRequests": [
+      {
+        "resource": "Microsoft Graph",
+        "scope": "User.Read.All"
+      }
     ]
 
   },
-  "webApiPermissionRequests": [
-    {
-      "resource": "Microsoft Graph",
-      "scope": "User.Read.All"
-    }
-  ],
   "paths": {
     "zippedPackage": "solution/react-organization-chart.sppkg"
   }
