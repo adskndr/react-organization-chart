@@ -331,17 +331,15 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           profileResponse!.managersList
         ).map((managerInfo) => (
-          <React.Fragment key={`manager-${managerInfo.id}`}>
-            <PersonCard
-              userInfo={managerInfo}
-              onUserSelected={onUserSelected}
-              selectedUser={currentUser}
-              showActionsBar={showActionsBar}
-              graphClient={graphClient}
-              sp={sp}
-             />
-            <div className={orgChartClasses.separatorVertical} />
-          </React.Fragment>
+          <PersonCard
+            key={`manager-${managerInfo.id}`}
+            userInfo={managerInfo}
+            onUserSelected={onUserSelected}
+            selectedUser={currentUser}
+            showActionsBar={showActionsBar}
+            graphClient={graphClient}
+            sp={sp}
+           />
         ));
         dispatch({
           type: EOrgChartTypes.SET_RENDER_MANAGERS,
@@ -379,7 +377,6 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     managerLevels,
     showActionsBar,
     graphClient,
-    orgChartClasses.separatorVertical,
   ]);
 
 
@@ -481,7 +478,19 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     <>
       <Stack  styles={{root:{padding: 20}}} >
         <Stack horizontalAlign="center" verticalAlign="center">
-          {renderManagers}
+          {renderManagers.length > 0 && (
+            <>
+              <Stack
+                horizontalAlign="center"
+                verticalAlign="center"
+                tokens={{ childrenGap: 12 }}
+                className={orgChartClasses.managerBox}
+              >
+                {renderManagers}
+              </Stack>
+              <div className={orgChartClasses.boxConnector} />
+            </>
+          )}
           <Stack
             horizontal
             horizontalAlign="center"

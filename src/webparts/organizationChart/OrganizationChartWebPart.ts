@@ -8,7 +8,6 @@ import {
   PropertyPaneTextField,
   PropertyPaneToggle,
 } from "@microsoft/sp-property-pane";
-import { PropertyPaneSpinButton } from "@microsoft/sp-property-pane/lib/propertyPaneFields/propertyPaneSpinButton/PropertyPaneSpinButton";
 import { PropertyFieldMultiSelect } from "@pnp/spfx-property-controls/lib/PropertyFieldMultiSelect";
 import {
   PropertyFieldPeoplePicker,
@@ -62,6 +61,16 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
     return _sp;
   }
 
+  // PropertyPaneTextField stores raw user input, so this normalizes whatever
+  // ends up in the property bag (string or number) into a safe non-negative
+  // integer, defaulting to 0 for anything invalid or empty.
+  private get _managerLevels(): number {
+    const raw = this.properties.managerLevels;
+    const parsed =
+      typeof raw === "number" ? raw : parseInt(String(raw ?? ""), 10);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+  }
+
   private async _loadMaxManagerLevels(): Promise<void> {
     const loginName = this.properties.selectedUser?.[0]?.id;
     if (!loginName || loginName === this._maxManagerLevelsLoadedFor) return;
@@ -71,7 +80,7 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
       this._maxManagerLevels = await getManagerChainLength(this.sp, loginName);
       // Don't leave an already-configured value stranded above the newly
       // known ceiling (e.g. was set to 5, but this person only has 3).
-      if ((this.properties.managerLevels ?? 0) > this._maxManagerLevels) {
+      if (this._managerLevels > this._maxManagerLevels) {
         this.properties.managerLevels = this._maxManagerLevels;
       }
     } catch (error) {
@@ -123,7 +132,7 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
         defaultUser: this.properties.currentUser,
         startFromUser: this.properties.selectedUser,
         coLeadUser: this.properties.coLeadUser,
-        managerLevels: this.properties.managerLevels,
+        managerLevels: this._managerLevels,
         context: this.context,
         showActionsBar: this.properties.showActionsBar,
         showPeers: this.properties.showPeers,
@@ -180,13 +189,24 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
                   onPropertyChange: this.onPropertyPaneFieldChanged,
                   properties: this.properties,
                 }),
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (PropertyPaneSpinButton("managerLevels", {
+                PropertyPaneTextField("managerLevels", {
                   label: strings.managerLevelsLabel,
-                  min: 0,
-                  max: this._maxManagerLevels,
-                  defaultValue: this.properties.managerLevels ?? 1,
-                }) as any),
+                  deferredValidationTime: 300,
+                  onGetErrorMessage: (value: string): string => {
+                    if (value === undefined || value === "") return "";
+                    const parsed = parseInt(value, 10);
+                    if (isNaN(parsed) || String(parsed) !== value.trim()) {
+                      return "Please enter a whole number";
+                    }
+                    if (parsed < 0) {
+                      return "Must be 0 or higher";
+                    }
+                    if (parsed > this._maxManagerLevels) {
+                      return `Only ${this._maxManagerLevels} level(s) available above this person`;
+                    }
+                    return "";
+                  },
+                }),
                 PropertyPaneToggle("showPeers", {
                   label: strings.showPeersLabel,
                 }),

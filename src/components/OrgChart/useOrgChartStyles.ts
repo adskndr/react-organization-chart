@@ -26,6 +26,12 @@ export const useOrgChartStyles = () => {
       // is what visually groups the co-leads, without boxing them in.
     }),
 
+    managerBox: mergeStyles({
+      border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
+      borderRadius: 4,
+      padding: 16,
+    }),
+
     leadershipBox: mergeStyles({
       border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
       borderRadius: 4,
