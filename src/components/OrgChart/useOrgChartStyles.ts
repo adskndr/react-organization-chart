@@ -63,7 +63,7 @@ const orgChartClasses = mergeStyleSets({
     borderRadius: 4,
     padding: 16,
     boxSizing: "border-box",
-    display: "flex",
+    display: "inline-flex",
     flexWrap: "wrap",
     justifyContent: "center",
     alignItems: "flex-start",
@@ -75,8 +75,12 @@ const orgChartClasses = mergeStyleSets({
     width: 0,
     height: 20,
     borderLeftStyle: "solid",
-    borderLeftWidth: 1,
-    borderLeftColor: currentTheme.white,
+    borderLeftWidth: 2,
+    // Hard-coded rather than currentTheme.white: that theme property can be
+    // undefined depending on the site theme / load timing, which silently
+    // drops the border color instead of erroring — making the line
+    // invisible for no obvious reason.
+    borderLeftColor: "#ffffff",
   }),
 });
 
