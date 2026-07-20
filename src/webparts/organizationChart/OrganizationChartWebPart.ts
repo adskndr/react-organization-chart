@@ -45,15 +45,23 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
 
   public async onInit(): Promise<void> {
     _sp = spfi().using(SPFx(this.context));
-    try {
-      // Used to load profile photos directly from Entra ID (Microsoft Graph)
-      // instead of the classic SharePoint userphoto.aspx endpoint.
-      this._graphClient = await this.context.msGraphClientFactory.getClient(
-        "3"
-      );
-    } catch (error) {
-      console.log(error);
-    }
+
+    // Fired-and-forgotten on purpose: never await this. If silent Graph
+    // auth hangs (e.g. blocked third-party cookies breaking the hidden
+    // iframe SSO flow), awaiting it here would hang the whole web part's
+    // initialization forever, which is exactly what was causing SharePoint's
+    // own _asyncRenderTimeout to kick in and crash the page. Photos just use
+    // the SharePoint fallback until/unless this resolves in the background.
+    this.context.msGraphClientFactory
+      .getClient("3")
+      .then((client) => {
+        this._graphClient = client;
+        this.render();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
     return super.onInit();
   }
   
