@@ -38,13 +38,12 @@ export const useOrgChartStyles = () => {
       padding: 16,
     }),
 
-    teamSeparator: mergeStyles({
-      width: "100%",
-      height: 0,
-      borderTopStyle: "solid",
-      borderTopWidth: 1,
-      borderTopColor: currentTheme.neutralQuaternaryAlt,
-      margin: "16px 0",
+    boxConnector: mergeStyles({
+      width: 0,
+      height: 20,
+      borderLeftStyle: "solid",
+      borderLeftWidth: 1,
+      borderLeftColor: currentTheme.neutralQuaternaryAlt,
     }),
   });
 
