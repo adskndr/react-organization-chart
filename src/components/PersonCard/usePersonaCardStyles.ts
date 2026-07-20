@@ -40,22 +40,6 @@ export const usePersonaCardStyles = () => {
     iconStyles: mergeStyles({
       fontSize: 16, color: currentTheme.themePrimary
     }),
-    hoverHeader: mergeStyles({
-      minWidth: 260,
-      maxWidth: 260,
-      borderStyle: "none",
-      borderWidth: 0,
-      borderRadius: 0,
-    }),
-    tileCurrentUser: mergeStyles({
-      minWidth: 260,
-      maxWidth: '260px !important',
-      borderStyle: "none",
-      borderWidth: 0,
-      borderRadius: 0,
-
-      boxShadow: "0 5px 15px rgba(50, 50, 90, .1)",
-    }),
     tile: mergeStyles({
       minWidth: 260,
       maxWidth: '260px !important',

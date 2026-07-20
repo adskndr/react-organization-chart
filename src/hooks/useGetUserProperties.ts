@@ -15,8 +15,7 @@ import { IPersonProperties } from "../models/IPersonProperties";
 type getUserProfileFunc = (
   sp: SPFI,
   currentUser: string,
-  startUser?: string,
-  showAllManagers?: boolean,
+  managerLevels?: number,
   showGuestUsers?: boolean
 ) => Promise<ProfileDataResponse>;
 
@@ -34,13 +33,11 @@ export const useGetUserProperties = (): {
     async (
       sp: SPFI,
       currentUser: string,
-      startUser?: string,
-      showAllManagers: boolean = false,
+      managerLevels: number = 0,
       showGuestUsers: boolean = false
     ): Promise<ProfileDataResponse> => {
       if (!currentUser) return;
       const loginName = currentUser;
-      const loginNameStartUser: Maybe<string> = startUser && startUser;
       const cacheCurrentUser: Maybe<IPersonProperties> = await get(
         `${loginName}__orgchart__`
       );
@@ -74,14 +71,15 @@ export const useGetUserProperties = (): {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         peersList = await getPeers(sp, wPeers, showGuestUsers);
       }
-      // Get Managers if exists
-      if (startUser && wExtendedManagers && wExtendedManagers.length > 0) {
+      // Get Managers if exists — ExtendedManagers is ordered starting with the
+      // immediate manager, so the first `managerLevels` entries are exactly
+      // "N levels up" from this person.
+      if (managerLevels > 0 && wExtendedManagers && wExtendedManagers.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         managersList = await getExtendedManagers(
           sp,
           wExtendedManagers,
-          loginNameStartUser!,
-          showAllManagers,
+          managerLevels,
           showGuestUsers
         );
       }
@@ -169,17 +167,16 @@ const getPeers = async (
 const getExtendedManagers = async (
   sp: SPFI,
   extendedManagers: string[],
-  startUser: string,
-  showAllManagers: boolean,
+  managerLevels: number,
   showGuestUsers: boolean
 ): Promise<IUserInfo[]> => {
   const wManagers: IUserInfo[] = [];
+  // extendedManagers is ordered starting with the immediate manager, so the
+  // first `managerLevels` entries are exactly the requested number of levels.
+  const levelsToFetch = extendedManagers.slice(0, Math.max(0, managerLevels));
   const [batchedSP, execute] = sp.batched();
 
-  for (const manager of extendedManagers) {
-    if (!showAllManagers && manager !== startUser) {
-      continue;
-    }
+  for (const manager of levelsToFetch) {
     const cacheManager: Maybe<IPersonProperties> = await get(
       `${manager}__orgchart__`
     );
@@ -204,7 +201,12 @@ const getExtendedManagers = async (
     }
   }
   await execute();
-  return wManagers;
+  // Batched/cached lookups can resolve out of order, so re-sort by the
+  // original chain order before returning ("nearest manager first").
+  const chainOrder = new Map(levelsToFetch.map((login, idx) => [login, idx]));
+  return wManagers.sort(
+    (a, b) => (chainOrder.get(a.id ?? "") ?? 0) - (chainOrder.get(b.id ?? "") ?? 0)
+  );
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

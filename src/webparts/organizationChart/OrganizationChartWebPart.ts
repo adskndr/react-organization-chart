@@ -5,7 +5,6 @@ import { BaseClientSideWebPart } from "@microsoft/sp-webpart-base";
 import {
   IPropertyPaneConfiguration,
   IPropertyPaneDropdownOption,
-  PropertyPaneDropdown,
   PropertyPaneSlider,
   PropertyPaneTextField,
   PropertyPaneToggle,
@@ -23,30 +22,37 @@ import { IOrgChartProps } from "../../components/OrgChart/IOrgChartProps";
 import { spfi, SPFI, SPFx } from "@pnp/sp";
 import "@pnp/sp/profiles";
 import { getDepartments } from "../../services/DepartmentService";
+import { IGraphPhotoClient } from "../../services/PhotoService";
 
 let _sp: SPFI;
 export interface IOrganizationChartWebPartProps {
-  title: string;
   currentUser: string;
   selectedUser: IPropertyFieldGroupOrPerson[];
   coLeadUser: IPropertyFieldGroupOrPerson[];
-  showAllManagers: boolean;
+  managerLevels: number;
   showGuestUsers: boolean;
   showPeers: boolean;
   showActionsBar: boolean;
   departmentFilterSelected: string[];
   departmentFilterText: string;
-  showTitle: boolean;
-  titleHeadingLevel: string;
-  titleFontSize: number;
 }
 
 export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrganizationChartWebPartProps> {
   private _departmentOptions: IPropertyPaneDropdownOption[] = [];
   private _departmentsLoaded: boolean = false;
+  private _graphClient?: IGraphPhotoClient;
 
   public async onInit(): Promise<void> {
     _sp = spfi().using(SPFx(this.context));
+    try {
+      // Used to load profile photos directly from Entra ID (Microsoft Graph)
+      // instead of the classic SharePoint userphoto.aspx endpoint.
+      this._graphClient = await this.context.msGraphClientFactory.getClient(
+        "3"
+      );
+    } catch (error) {
+      console.log(error);
+    }
     return super.onInit();
   }
   
@@ -77,20 +83,17 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
     const element: React.ReactElement<IOrgChartProps> = React.createElement(
       OrgChart,
       {
-        title: this.properties.title,
         defaultUser: this.properties.currentUser,
         startFromUser: this.properties.selectedUser,
         coLeadUser: this.properties.coLeadUser,
-        showAllManagers: this.properties.showAllManagers,
+        managerLevels: this.properties.managerLevels,
         showGuestUsers: this.properties.showGuestUsers,
         context: this.context,
         showActionsBar: this.properties.showActionsBar,
         showPeers: this.properties.showPeers,
         departmentFilterSelected: this.properties.departmentFilterSelected,
         departmentFilterText: this.properties.departmentFilterText,
-        showTitle: this.properties.showTitle,
-        titleHeadingLevel: this.properties.titleHeadingLevel,
-        titleFontSize: this.properties.titleFontSize,
+        graphClient: this._graphClient,
         sp: this.sp,
       }
     );
@@ -117,9 +120,6 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField("title", {
-                  label: strings.TitleFieldLabel,
-                }),
                 PropertyFieldPeoplePicker("selectedUser", {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   context: this.context as any,
@@ -144,8 +144,11 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
                   onPropertyChange: this.onPropertyPaneFieldChanged,
                   properties: this.properties,
                 }),
-                PropertyPaneToggle("showAllManagers", {
-                  label: strings.showAllManagers,
+                PropertyPaneSlider("managerLevels", {
+                  label: strings.managerLevelsLabel,
+                  min: 0,
+                  max: 10,
+                  step: 1,
                 }),
                 PropertyPaneToggle("showGuestUsers", {
                   label: strings.showGuestUsers,
@@ -165,31 +168,6 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
                 PropertyPaneTextField("departmentFilterText", {
                   label: strings.departmentFilterTextLabel,
                   description: strings.departmentFilterTextDescription,
-                }),
-              ],
-            },
-            {
-              groupName: strings.TitleGroupName,
-              groupFields: [
-                PropertyPaneToggle("showTitle", {
-                  label: strings.showTitleLabel,
-                }),
-                PropertyPaneDropdown("titleHeadingLevel", {
-                  label: strings.titleHeadingLevelLabel,
-                  options: [
-                    { key: "h1", text: "H1" },
-                    { key: "h2", text: "H2" },
-                    { key: "h3", text: "H3" },
-                    { key: "h4", text: "H4" },
-                    { key: "h5", text: "H5" },
-                    { key: "h6", text: "H6" },
-                  ],
-                }),
-                PropertyPaneSlider("titleFontSize", {
-                  label: strings.titleFontSizeLabel,
-                  min: 12,
-                  max: 60,
-                  step: 1,
                 }),
               ],
             },

@@ -27,7 +27,7 @@ const currentTheme = window.__themeState__.theme;
 export const PersonCard: React.FunctionComponent<IPersonCardProps> = (
   props: IPersonCardProps
 ) => {
-  const { userInfo, onUserSelected, showActionsBar, sp } = props;
+  const { userInfo, onUserSelected, showActionsBar, graphClient, sp } = props;
 
   const documentCardRef = React.useRef<IDocumentCard>(null);
   const {
@@ -150,6 +150,7 @@ export const PersonCard: React.FunctionComponent<IPersonCardProps> = (
                 secondaryText={userInfo.title}
                 userEmail={userInfo.email}
                 pictureUrl={userInfo.pictureUrl}
+                graphClient={graphClient}
                 size={PersonaSize.size40}
               />
             </Stack>

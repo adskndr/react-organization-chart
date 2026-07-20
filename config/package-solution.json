@@ -38,6 +38,12 @@
     ]
 
   },
+  "webApiPermissionRequests": [
+    {
+      "resource": "Microsoft Graph",
+      "scope": "User.Read.All"
+    }
+  ],
   "paths": {
     "zippedPackage": "solution/react-organization-chart.sppkg"
   }

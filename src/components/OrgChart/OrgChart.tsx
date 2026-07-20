@@ -6,7 +6,7 @@ import {
   useGetUserProperties,
   manpingUserProperties,
 } from "../../hooks/useGetUserProperties";
-import { IStackStyles, Stack } from "@fluentui/react/lib/Stack";
+import { Stack } from "@fluentui/react/lib/Stack";
 import { PersonCard } from "../PersonCard/PersonCard";
 import { IUserInfo } from "../../models/IUserInfo";
 import { EOrgChartTypes } from "./EOrgChartTypes";
@@ -35,12 +35,6 @@ const initialState: IOrgChartState = {
   coLeadUser: undefined,
 };
 
-const titleStyle: IStackStyles = {
-  root: {
-    paddingBottom: 40,
-  },
-};
-
 export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
   props: IOrgChartProps
 ) => {
@@ -60,7 +54,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
 
   const {
     context,
-    showAllManagers,
+    managerLevels,
     showGuestUsers,
     startFromUser,
     coLeadUser: coLeadUserPicker,
@@ -68,10 +62,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     showPeers,
     departmentFilterSelected,
     departmentFilterText,
-    showTitle,
-    titleHeadingLevel,
-    titleFontSize,
-    title,
+    graphClient,
     sp,
   }: IOrgChartProps = props;
 
@@ -143,7 +134,6 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
   const loadOrgChart = React.useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (selectedUser: string): Promise<any> => {
-      const wRenderManagers: JSX.Element[] = [];
       const wRenderDirectReports: JSX.Element[] = [];
       const wRenderPeers: JSX.Element[] = [];
 
@@ -151,8 +141,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         const profileResponse = await getUserProfile(
           sp,
           selectedUser,
-          startFromUserId,
-          showAllManagers,
+          0,
           showGuestUsers,
         );
         if (profileResponse) {
@@ -182,24 +171,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             matchesDepartmentFilter(peer.department)
           );
 
-          for (const managerInfo of profileResponse.managersList) {
-            wRenderManagers.push(
-              <React.Fragment key={`manager-${managerInfo.id}`}>
-                <PersonCard
-                  userInfo={managerInfo}
-                  onUserSelected={onUserSelected}
-                  selectedUser={currentUser}
-                  showActionsBar={showActionsBar}
-                  sp={sp}
-                 />
-                <div
-                  className={orgChartClasses.separatorVertical}
-                 />
-              </React.Fragment>
-            );
-          }
-
-          if (showPeers !== false) {
+          if (showPeers === true) {
             for (const peerInfo of filteredPeers) {
               wRenderPeers.push(
                 <PersonCard
@@ -208,7 +180,8 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                   onUserSelected={onUserSelected}
                   selectedUser={currentUser}
                   showActionsBar={showActionsBar}
-                  sp={sp}
+                  graphClient={graphClient}
+                sp={sp}
                  />
               );
             }
@@ -247,7 +220,8 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                         onUserSelected={onUserSelected}
                         selectedUser={currentUser}
                         showActionsBar={showActionsBar}
-                        sp={sp}
+                        graphClient={graphClient}
+                sp={sp}
                        />
                     ))}
                   </Stack>
@@ -264,6 +238,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                 onUserSelected={onUserSelected}
                 selectedUser={currentUser}
                 showActionsBar={showActionsBar}
+                graphClient={graphClient}
                 sp={sp}
                />
             );
@@ -290,7 +265,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         });
       }
 
-      return { wRenderDirectReports, wRenderManagers, wRenderPeers };
+      return { wRenderDirectReports, wRenderPeers };
     },
 
     [
@@ -298,16 +273,15 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
       getUserProfile,
       startFromUserId,
       coLeadUserId,
-      showAllManagers,
       showGuestUsers,
       onUserSelected,
       currentUser,
       showActionsBar,
       showPeers,
+      graphClient,
       matchesDepartmentFilter,
       sortReportsPriority,
       isCoLead,
-      orgChartClasses.separatorVertical,
       orgChartClasses.coLeadGroup,
     ]
   );
@@ -331,7 +305,12 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           });
           return;
         }
-        const profileResponse = await getUserProfile(sp, startFromUserId);
+        const profileResponse = await getUserProfile(
+          sp,
+          startFromUserId,
+          managerLevels,
+          showGuestUsers
+        );
         const wCurrentUser: IUserInfo = await manpingUserProperties(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           profileResponse!.currentUserProfile
@@ -340,6 +319,35 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           type: EOrgChartTypes.SET_CURRENT_USER,
           payload: wCurrentUser,
         });
+
+        // The managers row is always anchored to the configured "start from
+        // user" — level 1 is their direct manager, level 2 the next one up,
+        // and so on — regardless of which card is currently being browsed.
+        // Reversed so the highest level renders at the top of the screen,
+        // closest level directly above the leadership box.
+        const wRenderManagers: JSX.Element[] = [
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          ...profileResponse!.managersList
+        ]
+          .reverse()
+          .map((managerInfo) => (
+            <React.Fragment key={`manager-${managerInfo.id}`}>
+              <PersonCard
+                userInfo={managerInfo}
+                onUserSelected={onUserSelected}
+                selectedUser={currentUser}
+                showActionsBar={showActionsBar}
+                graphClient={graphClient}
+                sp={sp}
+               />
+              <div className={orgChartClasses.separatorVertical} />
+            </React.Fragment>
+          ));
+        dispatch({
+          type: EOrgChartTypes.SET_RENDER_MANAGERS,
+          payload: wRenderManagers,
+        });
+
         dispatch({
           type: EOrgChartTypes.SET_HAS_ERROR,
           payload: { hasError: false, errorMessage: "" },
@@ -359,7 +367,16 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         });
       }
     })();
-  }, [getUserProfile, sp, startFromUserId]);
+  }, [
+    getUserProfile,
+    sp,
+    startFromUserId,
+    managerLevels,
+    showGuestUsers,
+    showActionsBar,
+    graphClient,
+    orgChartClasses.separatorVertical,
+  ]);
 
   React.useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -393,13 +410,9 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         payload: true,
       });
 
-      const { wRenderDirectReports, wRenderManagers, wRenderPeers } = await loadOrgChart(
+      const { wRenderDirectReports, wRenderPeers } = await loadOrgChart(
         currentUser.id
       );
-      dispatch({
-        type: EOrgChartTypes.SET_RENDER_MANAGERS,
-        payload: wRenderManagers,
-      });
       dispatch({
         type: EOrgChartTypes.SET_RENDER_DIRECT_REPORTS,
         payload: wRenderDirectReports,
@@ -462,15 +475,6 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
   return (
     <>
       <Stack  styles={{root:{padding: 20}}} >
-        {showTitle !== false && (
-          <Stack horizontal horizontalAlign="center" styles={titleStyle}>
-            {React.createElement(
-              titleHeadingLevel || "h2",
-              { style: { fontSize: titleFontSize || 28, margin: 0, fontWeight: 600 } },
-              title
-            )}
-          </Stack>
-        )}
         <Stack horizontalAlign="center" verticalAlign="center">
           {renderManagers}
           <Stack
@@ -495,6 +499,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                 onUserSelected={onUserSelected}
                 selectedUser={currentUser}
                 showActionsBar={showActionsBar}
+                graphClient={graphClient}
                 sp={sp}
                />
               {coLeadUser && (
@@ -504,18 +509,16 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                   onUserSelected={onUserSelected}
                   selectedUser={currentUser}
                   showActionsBar={showActionsBar}
-                  sp={sp}
+                  graphClient={graphClient}
+                sp={sp}
                  />
               )}
             </Stack>
           </Stack>
-          {renderDirectReports.length && (
-            <>
-              <div className={orgChartClasses.separatorVertical} />
-              <div className={orgChartClasses.separatorHorizontal} />
-            </>
-          )}
         </Stack>
+        {renderDirectReports.length > 0 && (
+          <div className={orgChartClasses.teamSeparator} />
+        )}
         {isDepartmentFilterActive && renderDirectReports.length === 0 && (
           <Stack horizontal horizontalAlign="center" styles={{ root: { padding: 10 } }}>
             <Text variant="medium">
@@ -526,7 +529,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         <Stack
           horizontal
           horizontalAlign="center"
-          styles={{root:{padding: 10}}}
+          styles={{ root: { padding: 10 } }}
           tokens={{ childrenGap: 15 }}
           wrap
           className={

@@ -6,20 +6,46 @@ import {
 } from "@fluentui/react/lib/Persona";
 import { Text } from "@fluentui/react/lib/Text";
 import { IPersonProps } from "./IPersonProps";
+import { getUserPhotoUrl } from "../../services/PhotoService";
 
 export const Person: React.FunctionComponent<IPersonProps> = (
   props: IPersonProps
 ) => {
-  const { text, secondaryText, userEmail, size, tertiaryText , pictureUrl} = props;
+  const { text, secondaryText, userEmail, size, tertiaryText, graphClient } =
+    props;
+
+  // Start with the classic SharePoint profile-photo endpoint as an immediate
+  // fallback, then swap in the Entra ID (Microsoft Graph) photo once/if it
+  // resolves — that's the actual source of truth for photos in this tenant.
+  const [imageUrl, setImageUrl] = React.useState<string | undefined>(
+    userEmail
+      ? `/_layouts/15/userphoto.aspx?size=M&accountname=${encodeURIComponent(userEmail)}`
+      : undefined
+  );
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    getUserPhotoUrl(graphClient, userEmail).then((graphPhotoUrl) => {
+      if (!cancelled && graphPhotoUrl) {
+        setImageUrl(graphPhotoUrl);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [graphClient, userEmail]);
 
   const personProps: IPersonaSharedProps = React.useMemo(() => {
     return {
-       imageUrl: pictureUrl ? `/_layouts/15/userphoto.aspx?size=M&accountname=${userEmail}` : undefined,
+      imageUrl,
       text: text,
       secondaryText: secondaryText,
       tertiaryText: tertiaryText,
     };
-  }, [pictureUrl, userEmail, text, secondaryText, tertiaryText]);
+  }, [imageUrl, text, secondaryText, tertiaryText]);
 
   const _onRenderPrimaryText = React.useCallback(() => {
     return (
