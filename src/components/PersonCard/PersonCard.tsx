@@ -143,6 +143,7 @@ export const PersonCard: React.FunctionComponent<IPersonCardProps> = (
             <Stack
               horizontal
               horizontalAlign="space-between"
+              verticalAlign="center"
               styles={stackPersonaStyles}
             >
               <Person
@@ -151,7 +152,7 @@ export const PersonCard: React.FunctionComponent<IPersonCardProps> = (
                 userEmail={userInfo.email}
                 pictureUrl={userInfo.pictureUrl}
                 graphClient={graphClient}
-                size={PersonaSize.size40}
+                size={PersonaSize.size48}
               />
             </Stack>
           </DocumentCardDetails>

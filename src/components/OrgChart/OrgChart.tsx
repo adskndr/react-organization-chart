@@ -66,18 +66,22 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
   }: IOrgChartProps = props;
 
 
-  const startFromUserId: Maybe<string> = React.useMemo(
-    () => startFromUser && startFromUser[0] && startFromUser[0].id,
-    [startFromUser]
-  );
-  const coLeadUserId: Maybe<string> = React.useMemo(() => {
-    const id =
-      coLeadUserPicker && coLeadUserPicker[0] && coLeadUserPicker[0].id;
-    // If someone accidentally picks the same person as both "start from
-    // user" and "co-lead", ignore the co-lead rather than showing the same
-    // person twice side by side.
-    return id && id !== startFromUserId ? id : undefined;
-  }, [coLeadUserPicker, startFromUserId]);
+  // Deliberately NOT wrapped in useMemo: the People Picker control can
+  // mutate its array in place rather than handing back a new reference,
+  // which meant useMemo's reference-equality check sometimes missed
+  // removals/re-additions until a full page reload. Recomputing these
+  // plain values every render is trivially cheap and always correct.
+  const startFromUserId: Maybe<string> =
+    startFromUser && startFromUser[0] && startFromUser[0].id;
+  const coLeadUserIdRaw: Maybe<string> =
+    coLeadUserPicker && coLeadUserPicker[0] && coLeadUserPicker[0].id;
+  // If someone accidentally picks the same person as both "start from user"
+  // and "co-lead", ignore the co-lead rather than showing the same person
+  // twice side by side.
+  const coLeadUserId: Maybe<string> =
+    coLeadUserIdRaw && coLeadUserIdRaw !== startFromUserId
+      ? coLeadUserIdRaw
+      : undefined;
   const onUserSelected = React.useCallback((selectedUser: IUserInfo) => {
     dispatch({
       type: EOrgChartTypes.SET_CURRENT_USER,
@@ -208,11 +212,8 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
 
               if (coLeadGroup.length > 1) {
                 wRenderDirectReports.push(
-                  <Stack
+                  <div
                     key={`co-lead-group-${coLeadGroup[0].id}`}
-                    horizontal
-                    verticalAlign="center"
-                    tokens={{ childrenGap: 8 }}
                     className={orgChartClasses.coLeadGroup}
                   >
                     {coLeadGroup.map((coLead) => (
@@ -226,7 +227,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                 sp={sp}
                        />
                     ))}
-                  </Stack>
+                  </div>
                 );
                 reportIndex = lookahead;
                 continue;
@@ -528,7 +529,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         <Stack horizontalAlign="center" verticalAlign="center">
           {renderManagers.length > 0 && (
             <>
-              <Stack horizontalAlign="center" verticalAlign="center">
+              <Stack horizontalAlign="start" verticalAlign="center">
                 {renderManagers}
               </Stack>
               <div className={orgChartClasses.boxConnector} />
@@ -573,18 +574,13 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             </Text>
           </Stack>
         )}
-        <Stack
-          horizontal
-          horizontalAlign="center"
-          styles={{ root: { padding: 10 } }}
-          tokens={{ childrenGap: 15 }}
-          wrap
+        <div
           className={
             renderDirectReports.length ? orgChartClasses.teamBox : undefined
           }
         >
           {renderDirectReports}
-        </Stack>
+        </div>
       </Stack>
     </>
   );

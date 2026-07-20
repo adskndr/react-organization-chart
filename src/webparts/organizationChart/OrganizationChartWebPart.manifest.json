@@ -1,26 +1,14 @@
-{
-  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
-  "id": "0338da15-07f9-4a53-b267-d790fb495cca",
-  "alias": "OrganizationChartWebPart",
-  "componentType": "WebPart",
-   "supportsFullBleed": true,
-
-  "version": "*",
-  "manifestVersion": 2,
-
-  "requiresCustomScript": false,
-  "supportedHosts": ["SharePointWebPart"],
-
-  "preconfiguredEntries": [{
-    "groupId": "5c03119e-3074-46fd-976b-c60198311f70", 
-    "group": { "default": "SPFx - Custom WebParts" },
-    "title": { "default": "Organization Chart" },
-    "description": { "default": "Show Company Organization Chart" },
-    "officeFabricIconFontName": "Org",
-    "properties": {
-      "managerLevels": 1,
-      "showPeers": false,
-      "showActionsBar": true
-    }
-  }]
-}
+define([], function() {
+  return {
+    "PropertyPaneDescription": "Company Organization Chart",
+    "BasicGroupName": "Properties",
+    "startFromUserLabel": "Start from user",
+    "coLeadUserLabel": "Co-lead (optional) — shown side by side, their team is merged in below",
+    "managerLevelsLabel": "Manager levels above (1 = direct manager, 2 = two levels up, ...)",
+    "showactionsLabel": "Show actions bar",
+    "showPeersLabel": "Show colleagues (peers)",
+    "departmentFilterLabel": "Filter by department(s)",
+    "departmentFilterTextLabel": "Or filter by free text",
+    "departmentFilterTextDescription": "Matches departments containing this text, in addition to the selection above. Leave both empty to show everyone.",
+  }
+});

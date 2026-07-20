@@ -6,7 +6,7 @@ const currentTheme: Theme = window.__themeState__.theme;
 // PersonCard — this hook runs once per person shown in the chart, so this
 // avoids re-running mergeStyleSets/mergeStyles dozens of times per render.
 const stackPersonaStyles: Partial<IStackStyles> = {
-  root: { padding: 15 },
+  root: { padding: "0 15px", height: 70, boxSizing: "border-box" },
 };
 
 const buttonStyles: IButtonStyles = {
@@ -41,8 +41,8 @@ const personaCardStyles = mergeStyleSets({
     fontSize: 16, color: currentTheme.themePrimary
   }),
   tile: mergeStyles({
-    minWidth: 260,
-    maxWidth: '260px !important',
+    width: 336,
+    boxSizing: "border-box",
     borderStyle: "solid",
     borderWidth: 1,
     borderRadius: 0,
@@ -62,13 +62,8 @@ const personaCardStyles = mergeStyleSets({
         borderRadius: 0,
         borderColor: currentTheme.themePrimary,
       },
-      "@media(max-width : 480px)": {
-        maxWidth: "100%",
-        minWidth: "100%",
-      },
-      "@media((min-width : 481px) and (max-width : 12480px))": {
-        maxWidth: 260,
-        minWidth: "min(50%, 260px)",
+      "@media(max-width : 360px)": {
+        width: "100%",
       },
     }
   }),

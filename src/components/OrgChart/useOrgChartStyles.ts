@@ -20,22 +20,22 @@ const orgChartClasses = mergeStyleSets({
     borderColor: currentTheme.neutralQuaternary,
   }),
 
+  // Person cards are now a fixed size, so this group just needs a bit more
+  // breathing room between co-leads — no border needed to read as a pair.
   coLeadGroup: mergeStyles({
-    // No border by design — the tighter gap (see tokens in OrgChart.tsx)
-    // is what visually groups the co-leads, without boxing them in.
+    display: "flex",
+    alignItems: "center",
+    columnGap: "16px",
   }),
 
+  // No fixed width/height here anymore — with the person card itself now a
+  // fixed size, the box naturally hugs its content (padding + border only),
+  // so it always matches however many managers are actually shown.
   managerBox: mergeStyles({
     border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
     borderRadius: 4,
     padding: 16,
-    // Fixed footprint (matches the person card's fixed 260px width + this
-    // box's own padding/border) so every manager box is guaranteed the
-    // exact same size, regardless of that manager's content.
-    width: 294,
-    boxSizing: "border-box",
-    display: "flex",
-    justifyContent: "center",
+    display: "inline-flex",
   }),
 
   leadershipBox: mergeStyles({
@@ -47,14 +47,14 @@ const orgChartClasses = mergeStyleSets({
     flexWrap: "wrap",
     justifyContent: "center",
     alignItems: "center",
-    columnGap: "15px",
-    rowGap: "15px",
+    columnGap: "16px",
+    rowGap: "16px",
   }),
 
   leadershipGroup: mergeStyles({
     display: "flex",
     alignItems: "center",
-    columnGap: "15px",
+    columnGap: "16px",
     flexShrink: 0,
   }),
 
@@ -62,6 +62,13 @@ const orgChartClasses = mergeStyleSets({
     border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
     borderRadius: 4,
     padding: 16,
+    boxSizing: "border-box",
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    columnGap: "16px",
+    rowGap: "16px",
   }),
 
   boxConnector: mergeStyles({
@@ -69,7 +76,7 @@ const orgChartClasses = mergeStyleSets({
     height: 20,
     borderLeftStyle: "solid",
     borderLeftWidth: 1,
-    borderLeftColor: currentTheme.neutralQuaternaryAlt,
+    borderLeftColor: currentTheme.white,
   }),
 });
 

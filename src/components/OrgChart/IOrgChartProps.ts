@@ -1,3 +1,4 @@
+
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { SPFI } from "@pnp/sp";
 import { IGraphPhotoClient } from "../../services/PhotoService";
