@@ -3,7 +3,7 @@
   "solution": {
     "name": "react-organization-chart",
     "id": "0b4a3e5d-123f-41ea-96c4-538c6a19932b",
-    "version": "1.4.0.0",
+    "version": "1.5.0.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
