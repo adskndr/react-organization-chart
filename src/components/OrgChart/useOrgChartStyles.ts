@@ -69,13 +69,15 @@ const orgChartClasses = mergeStyleSets({
     alignItems: "flex-start",
     columnGap: "16px",
     rowGap: "16px",
+    alignSelf: "center",
+    maxWidth: "100%",
   }),
 
   boxConnector: mergeStyles({
     width: 0,
-    height: 20,
+    height: 12,
     borderLeftStyle: "solid",
-    borderLeftWidth: 3,
+    borderLeftWidth: 1,
     borderLeftColor: "#ffffff",
   }),
 });
