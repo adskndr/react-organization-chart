@@ -13,7 +13,6 @@ import { EOrgChartTypes } from "./EOrgChartTypes";
 import {
   MessageBar,
   MessageBarType,
-  Overlay,
   Spinner,
   SpinnerSize,
   Text,
@@ -510,16 +509,13 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
 
   if (isLoading) {
     return (
-      <Overlay style={{ height: "100%", position: "fixed" }}>
-        <Stack style={{ height: "100%" }} verticalAlign="center">
-          <Spinner
-            styles={{ root: { zIndex: 9999 } }}
-            size={SpinnerSize.large}
-            label={"loading Organization Chart..."}
-            labelPosition={"bottom"}
-           />
-        </Stack>
-      </Overlay>
+      <Stack style={{ minHeight: 200 }} verticalAlign="center" horizontalAlign="center">
+        <Spinner
+          size={SpinnerSize.large}
+          label={"loading Organization Chart..."}
+          labelPosition={"bottom"}
+         />
+      </Stack>
     );
   }
 
@@ -553,7 +549,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           <div
             ref={leadershipBoxRef}
             className={orgChartClasses.leadershipBox}
-            style={leadershipBoxWidth ? { width: leadershipBoxWidth } : undefined}
+            style={leadershipBoxWidth !== undefined ? { width: leadershipBoxWidth } : undefined}
           >
             {renderPeers}
             <div className={orgChartClasses.leadershipGroup}>
@@ -599,7 +595,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           <div
             ref={teamBoxRef}
             className={orgChartClasses.teamBox}
-            style={teamBoxWidth ? { width: teamBoxWidth } : undefined}
+            style={teamBoxWidth !== undefined ? { width: teamBoxWidth } : undefined}
           >
             {renderDirectReports}
           </div>

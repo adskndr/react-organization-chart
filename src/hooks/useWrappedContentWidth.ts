@@ -30,6 +30,12 @@ export const useWrappedContentWidth = <T extends HTMLElement>(
 
     const measure = (): void => {
       const children = Array.from(el.children) as HTMLElement[];
+      // TEMPORARY diagnostic — remove once we've confirmed what's happening.
+      // eslint-disable-next-line no-console
+      console.log("[useWrappedContentWidth] measuring", {
+        childCount: children.length,
+        elRect: el.getBoundingClientRect(),
+      });
       if (children.length === 0) {
         setWidth(undefined);
         return;
@@ -37,6 +43,12 @@ export const useWrappedContentWidth = <T extends HTMLElement>(
       const rects = children.map((child) => child.getBoundingClientRect());
       const minLeft = Math.min(...rects.map((r) => r.left));
       const maxRight = Math.max(...rects.map((r) => r.right));
+      // eslint-disable-next-line no-console
+      console.log("[useWrappedContentWidth] result", {
+        minLeft,
+        maxRight,
+        width: maxRight - minLeft,
+      });
       setWidth(maxRight - minLeft);
     };
 
