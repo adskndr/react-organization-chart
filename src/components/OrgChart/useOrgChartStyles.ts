@@ -49,7 +49,13 @@ const orgChartClasses = mergeStyleSets({
   leadershipBox: mergeStyles({
     border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
     borderRadius: 4,
-    padding: 16,
+    // Kept in sync with managerBox/teamBox padding so every grey box looks
+    // identical regardless of what it wraps (manager, start-from-user +
+    // co-lead, or the team row).
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 4,
+    paddingRight: 8,
     boxSizing: "border-box",
     // fit-content is what actually makes this dynamic: the box hugs
     // whatever it contains — one card, or lead + co-lead side by side —
@@ -59,7 +65,7 @@ const orgChartClasses = mergeStyleSets({
     // cards are shown alongside the lead/co-lead group.
     width: "fit-content",
     maxWidth: "100%",
-    minHeight: PERSON_CARD_HEIGHT + 32, // card height + top/bottom padding
+    minHeight: PERSON_CARD_HEIGHT + 8, // card height + top/bottom padding
     display: "flex",
     flexWrap: "wrap",
     justifyContent: "center",
