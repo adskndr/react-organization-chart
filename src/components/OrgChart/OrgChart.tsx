@@ -573,16 +573,9 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             </Text>
           </Stack>
         )}
-        <Stack
-          horizontal
-          horizontalAlign="center"
-          wrap
-          className={
-            renderDirectReports.length ? orgChartClasses.teamBox : undefined
-          }
-        >
-          {renderDirectReports}
-        </Stack>
+        {renderDirectReports.length > 0 && (
+          <div className={orgChartClasses.teamBox}>{renderDirectReports}</div>
+        )}
       </Stack>
     </>
   );

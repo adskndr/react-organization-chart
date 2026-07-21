@@ -93,11 +93,15 @@ const orgChartClasses = mergeStyleSets({
     boxSizing: "border-box",
     width: "fit-content",
     maxWidth: "100%",
-    // Real CSS gap instead of Fluent's tokens.childrenGap (which used a
-    // negative-margin technique that left phantom extra width on a
-    // fit-content Stack even with only one card inside — which is exactly
-    // what made this box wider than managerBox/leadershipBox for a single
-    // employee).
+    // Plain div now (not a Fluent Stack) — Stack carries its own internal
+    // flex styles that can win a specificity fight against our custom
+    // className and silently override width:fit-content, which is exactly
+    // what kept this box wider than managerBox/leadershipBox even after
+    // the padding and gap fixes. A plain div only has the CSS we write
+    // here, same as leadershipBox, so there's nothing left to conflict.
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
     columnGap: "15px",
     rowGap: "15px",
     // The box sizes to its own content (fit-content) rather than stretching
