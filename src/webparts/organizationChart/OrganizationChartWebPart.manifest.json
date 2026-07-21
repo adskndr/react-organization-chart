@@ -18,9 +18,9 @@
     "description": { "default": "Show Company Organization Chart" },
     "officeFabricIconFontName": "Org",
     "properties": {
-      "managerLevels": 1,
+      "managerLevels": 0,
       "showPeers": false,
-      "showActionsBar": true
+      "showActionsBar": false
     }
   }]
 }

@@ -75,6 +75,12 @@ const orgChartClasses = mergeStyleSets({
     boxSizing: "border-box",
     width: "fit-content",
     maxWidth: "100%",
+    // The box sizes to its own content (fit-content) rather than stretching
+    // to the full row width, so it's no longer stretched/centered by its
+    // parent's default flex behavior — without this it lands flush left
+    // (most noticeable with just 1-2 direct reports). alignSelf forces it
+    // to center itself horizontally regardless of parent alignment.
+    alignSelf: "center",
   }),
 
   boxConnector: mergeStyles({

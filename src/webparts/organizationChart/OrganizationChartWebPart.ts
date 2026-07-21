@@ -150,6 +150,23 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
     ReactDom.unmountComponentAtNode(this.domElement);
   }
 
+  // PropertyFieldPeoplePicker (from @pnp/spfx-property-controls) keeps its
+  // own internal selection state once mounted, keyed off React's `key`
+  // prop. With a fixed key, clearing the field can leave that internal
+  // state out of sync with `initialData` — the control never remounts, so
+  // it can end up neither showing the person as removed nor accepting a
+  // new one. Deriving the key from the current value (present vs. empty,
+  // and which person) forces a clean remount exactly when the selection
+  // actually changes — not while the user is merely typing in the search
+  // box — which keeps it in sync.
+  private _peoplePickerKey(
+    prefix: string,
+    value: IPropertyFieldGroupOrPerson[] | undefined
+  ): string {
+    const id = value && value[0] && value[0].id;
+    return `${prefix}-${id ?? "empty"}`;
+  }
+
   protected get dataVersion(): Version {
     return Version.parse("1.0");
   }
@@ -170,7 +187,10 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
                   context: this.context as any,
                   label: strings.startFromUserLabel,
                   initialData: this.properties.selectedUser,
-                  key: "peopleFieldId",
+                  key: this._peoplePickerKey(
+                    "peopleFieldId",
+                    this.properties.selectedUser
+                  ),
                   multiSelect: false,
                   allowDuplicate: false,
                   principalType: [PrincipalType.Users],
@@ -182,7 +202,10 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
                   context: this.context as any,
                   label: strings.coLeadUserLabel,
                   initialData: this.properties.coLeadUser,
-                  key: "coLeadPeopleFieldId",
+                  key: this._peoplePickerKey(
+                    "coLeadPeopleFieldId",
+                    this.properties.coLeadUser
+                  ),
                   multiSelect: false,
                   allowDuplicate: false,
                   principalType: [PrincipalType.Users],
