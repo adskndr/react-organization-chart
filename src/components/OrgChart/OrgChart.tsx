@@ -38,6 +38,12 @@ const initialState: IOrgChartState = {
 export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
   props: IOrgChartProps
 ) => {
+  // TEMPORARY diagnostic marker — proves whether THIS build is actually
+  // the one running, independent of any hook/effect timing. Remove once
+  // confirmed.
+  // eslint-disable-next-line no-console
+  console.log("[OrgChart] BUILD MARKER v2 — component is rendering");
+
   const { getUserProfile } = useGetUserProperties();
   const [state, dispatch] = React.useReducer(OrgChartReducer, initialState);
   const { orgChartClasses } = useOrgChartStyles();
