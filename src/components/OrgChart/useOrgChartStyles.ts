@@ -29,13 +29,10 @@ const orgChartClasses = mergeStyleSets({
   managerBox: mergeStyles({
     border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
     borderRadius: 4,
-    // Top/bottom/left tighter — right stays at the original 8px so the
-    // box's overall width (and its distance from the card on the right
-    // side) doesn't change.
     paddingTop: 4,
     paddingBottom: 4,
-    paddingLeft: 4,
-    paddingRight: 8,
+    paddingLeft: 6,
+    paddingRight: 6,
     boxSizing: "border-box",
     // inline-flex shrink-wraps to its content on its own — no need for an
     // explicit width to force that (see teamBox below for why that matters
@@ -53,8 +50,8 @@ const orgChartClasses = mergeStyleSets({
     // co-lead, or the team row).
     paddingTop: 4,
     paddingBottom: 4,
-    paddingLeft: 4,
-    paddingRight: 8,
+    paddingLeft: 6,
+    paddingRight: 6,
     boxSizing: "border-box",
     // maxWidth keeps it from overflowing the page once there are enough
     // peer/co-lead cards to need more than one row.
@@ -82,8 +79,8 @@ const orgChartClasses = mergeStyleSets({
     // looks identical to the manager's.
     paddingTop: 4,
     paddingBottom: 4,
-    paddingLeft: 4,
-    paddingRight: 8,
+    paddingLeft: 6,
+    paddingRight: 6,
     boxSizing: "border-box",
     // inline-flex shrink-wraps to its content by itself, including once
     // flex-wrap kicks in and the cards spill onto a second row (e.g. 3+
