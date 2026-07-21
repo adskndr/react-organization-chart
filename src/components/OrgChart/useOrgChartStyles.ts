@@ -108,7 +108,7 @@ const orgChartClasses = mergeStyleSets({
 
   boxConnector: mergeStyles({
     width: 0,
-    height: 13,
+    height: 12,
     borderLeftStyle: "solid",
     borderLeftWidth: 1,
     borderLeftColor: "#ffffff",

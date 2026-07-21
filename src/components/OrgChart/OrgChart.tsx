@@ -20,6 +20,7 @@ import {
 } from "@fluentui/react";
 
 import { useOrgChartStyles } from "./useOrgChartStyles";
+import { useWrappedContentWidth } from "../../hooks/useWrappedContentWidth";
 
 import "./OrgChart.module.scss";
 import { Placeholder } from "../Placeholder/PlaceholderComponent";
@@ -51,6 +52,17 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     isLoading,
     error,
   }: IOrgChartState = state;
+
+  // CSS alone can't shrink-wrap a wrapping flex box to "the width of the
+  // widest row it actually wrapped into" (see useWrappedContentWidth) — so
+  // we measure it and apply it as an explicit width below, for both boxes
+  // that can hold more than one card side by side.
+  const [teamBoxRef, teamBoxWidth] = useWrappedContentWidth<HTMLDivElement>([
+    renderDirectReports,
+  ]);
+  const [leadershipBoxRef, leadershipBoxWidth] = useWrappedContentWidth<HTMLDivElement>(
+    [renderPeers, currentUser, coLeadUser]
+  );
 
   const {
     context,
@@ -538,7 +550,11 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
               <div className={orgChartClasses.boxConnector} />
             </>
           )}
-          <div className={orgChartClasses.leadershipBox}>
+          <div
+            ref={leadershipBoxRef}
+            className={orgChartClasses.leadershipBox}
+            style={leadershipBoxWidth ? { width: leadershipBoxWidth } : undefined}
+          >
             {renderPeers}
             <div className={orgChartClasses.leadershipGroup}>
               <PersonCard
@@ -580,7 +596,13 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           </Stack>
         )}
         {renderDirectReports.length > 0 && (
-          <div className={orgChartClasses.teamBox}>{renderDirectReports}</div>
+          <div
+            ref={teamBoxRef}
+            className={orgChartClasses.teamBox}
+            style={teamBoxWidth ? { width: teamBoxWidth } : undefined}
+          >
+            {renderDirectReports}
+          </div>
         )}
       </Stack>
     </>
