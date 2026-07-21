@@ -132,13 +132,19 @@ const getDirectReports = async (
         .then(async (directReport: IPersonProperties) => {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           const userInfo = await manpingUserProperties(directReport);
-          _reportsList.push(userInfo);
+          // Hidden from the Global Address List — leave them out of the
+          // chart entirely, same as if they weren't a direct report at all.
+          if (!userInfo.hideFromAddressLists) {
+            _reportsList.push(userInfo);
+          }
           await setCached(`${userReport}__orgchart__`, directReport);
         });
     } else {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       const userInfo = await manpingUserProperties(cacheDirectReport);
-      _reportsList.push(userInfo);
+      if (!userInfo.hideFromAddressLists) {
+        _reportsList.push(userInfo);
+      }
     }
   }
   await execute();
@@ -163,13 +169,17 @@ const getPeers = async (
         .then(async (peerProfile: IPersonProperties) => {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           const userInfo = await manpingUserProperties(peerProfile);
-          _peersList.push(userInfo);
+          if (!userInfo.hideFromAddressLists) {
+            _peersList.push(userInfo);
+          }
           await setCached(`${peer}__orgchart__`, peerProfile);
         });
     } else {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       const userInfo = await manpingUserProperties(cachePeer);
-      _peersList.push(userInfo);
+      if (!userInfo.hideFromAddressLists) {
+        _peersList.push(userInfo);
+      }
     }
   }
   await execute();
@@ -201,13 +211,17 @@ const getExtendedManagers = async (
         .then(async (_profile: IPersonProperties) => {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           const userInfo = await manpingUserProperties(_profile);
-          wManagers.push(userInfo);
+          if (!userInfo.hideFromAddressLists) {
+            wManagers.push(userInfo);
+          }
           await setCached(`${manager}__orgchart__`, _profile);
         });
     } else {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       const userInfo = await manpingUserProperties(cacheManager);
-      wManagers.push(userInfo);
+      if (!userInfo.hideFromAddressLists) {
+        wManagers.push(userInfo);
+      }
     }
   }
   await execute();
@@ -267,6 +281,15 @@ export const manpingUserProperties = async (
       filter(userProperties?.UserProfileProperties, { Key: "SPS-UserType" })[0]
         ?.Value
     ),
+    // Synced from the AD/Exchange "Hide from Global Address List (GAL)"
+    // attribute (msExchHideFromAddressLists) — value comes through as the
+    // string "True"/"False", not an actual boolean.
+    hideFromAddressLists:
+      (
+        filter(userProperties?.UserProfileProperties, {
+          Key: "SPS-HideFromAddressLists",
+        })[0]?.Value ?? ""
+      ).toLowerCase() === "true",
     loginName: userProperties.loginName,
   };
 };

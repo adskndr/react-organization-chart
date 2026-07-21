@@ -36,12 +36,11 @@ const orgChartClasses = mergeStyleSets({
     paddingBottom: 4,
     paddingLeft: 4,
     paddingRight: 8,
-    // Sized off its own content instead of a hardcoded pixel value: it
-    // always holds exactly one card, but this way the box never drifts out
-    // of sync if the card's own width ever changes.
-    width: "fit-content",
     boxSizing: "border-box",
-    display: "flex",
+    // inline-flex shrink-wraps to its content on its own — no need for an
+    // explicit width to force that (see teamBox below for why that matters
+    // once there's more than one card to wrap).
+    display: "inline-flex",
     justifyContent: "center",
     alignItems: "center",
   }),
@@ -57,16 +56,11 @@ const orgChartClasses = mergeStyleSets({
     paddingLeft: 4,
     paddingRight: 8,
     boxSizing: "border-box",
-    // fit-content is what actually makes this dynamic: the box hugs
-    // whatever it contains — one card, or lead + co-lead side by side —
-    // and grows/shrinks automatically as cards are added or removed,
-    // instead of relying on a width that was only ever correct for one
-    // card. maxWidth keeps it from overflowing the page if many peer
-    // cards are shown alongside the lead/co-lead group.
-    width: "fit-content",
+    // maxWidth keeps it from overflowing the page once there are enough
+    // peer/co-lead cards to need more than one row.
     maxWidth: "100%",
     minHeight: PERSON_CARD_HEIGHT + 8, // card height + top/bottom padding
-    display: "flex",
+    display: "inline-flex",
     flexWrap: "wrap",
     justifyContent: "center",
     alignItems: "center",
@@ -91,30 +85,30 @@ const orgChartClasses = mergeStyleSets({
     paddingLeft: 4,
     paddingRight: 8,
     boxSizing: "border-box",
-    width: "fit-content",
+    // inline-flex shrink-wraps to its content by itself, including once
+    // flex-wrap kicks in and the cards spill onto a second row (e.g. 3+
+    // direct reports) — the box's own width becomes the widest row's
+    // width, automatically. The earlier width:"fit-content" approach
+    // computed that less reliably once wrapping was involved, which is
+    // exactly what caused the box to look "off" specifically at 3 people.
     maxWidth: "100%",
-    // Plain div now (not a Fluent Stack) — Stack carries its own internal
-    // flex styles that can win a specificity fight against our custom
-    // className and silently override width:fit-content, which is exactly
-    // what kept this box wider than managerBox/leadershipBox even after
-    // the padding and gap fixes. A plain div only has the CSS we write
-    // here, same as leadershipBox, so there's nothing left to conflict.
-    display: "flex",
+    display: "inline-flex",
     flexWrap: "wrap",
     justifyContent: "center",
     columnGap: "15px",
     rowGap: "15px",
-    // The box sizes to its own content (fit-content) rather than stretching
-    // to the full row width, so it's no longer stretched/centered by its
-    // parent's default flex behavior — without this it lands flush left
-    // (most noticeable with just 1-2 direct reports). alignSelf forces it
-    // to center itself horizontally regardless of parent alignment.
+    // teamBox's parent (the outer page Stack) doesn't set an explicit
+    // horizontalAlign, so it defaults to stretching children to full
+    // width — inline-flex only controls how this box sizes its own
+    // content, not whether its parent stretches it. Without this, the
+    // box would stretch full-width and only wrap once it ran out of an
+    // entire page row, instead of hugging its cards.
     alignSelf: "center",
   }),
 
   boxConnector: mergeStyles({
     width: 0,
-    height: 12,
+    height: 13,
     borderLeftStyle: "solid",
     borderLeftWidth: 1,
     borderLeftColor: "#ffffff",
