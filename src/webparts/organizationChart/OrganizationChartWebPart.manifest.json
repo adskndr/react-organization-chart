@@ -5,8 +5,8 @@
   "componentType": "WebPart",
    "supportsFullBleed": true,
 
+  "version": "*",
   "manifestVersion": 2,
-
 
   "requiresCustomScript": false,
   "supportedHosts": ["SharePointWebPart"],
