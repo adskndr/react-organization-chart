@@ -110,7 +110,8 @@ export const PersonCard: React.FunctionComponent<IPersonCardProps> = (
                 built-in personCard experience via serviceScope. */}
             <LivePersona
               upn={userInfo.email}
-              serviceScope={serviceScope}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              serviceScope={serviceScope as any}
               template={
                 <Person
                   text={userInfo.displayName}
