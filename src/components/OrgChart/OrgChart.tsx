@@ -576,7 +576,6 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         <Stack
           horizontal
           horizontalAlign="center"
-          styles={{ root: { padding: 10 } }}
           tokens={{ childrenGap: 15 }}
           wrap
           className={
