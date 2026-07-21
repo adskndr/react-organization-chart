@@ -29,7 +29,13 @@ const orgChartClasses = mergeStyleSets({
   managerBox: mergeStyles({
     border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
     borderRadius: 4,
-    padding: 8,
+    // Top/bottom/left tighter — right stays at the original 8px so the
+    // box's overall width (and its distance from the card on the right
+    // side) doesn't change.
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 4,
+    paddingRight: 8,
     // Sized off its own content instead of a hardcoded pixel value: it
     // always holds exactly one card, but this way the box never drifts out
     // of sync if the card's own width ever changes.
@@ -71,7 +77,12 @@ const orgChartClasses = mergeStyleSets({
   teamBox: mergeStyles({
     border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
     borderRadius: 4,
-    padding: 8,
+    // Kept in sync with managerBox's padding so a single employee's box
+    // looks identical to the manager's.
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 4,
+    paddingRight: 8,
     boxSizing: "border-box",
     width: "fit-content",
     maxWidth: "100%",
