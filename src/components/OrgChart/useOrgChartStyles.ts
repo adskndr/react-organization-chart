@@ -43,6 +43,7 @@ const orgChartClasses = mergeStyleSets({
     boxSizing: "border-box",
     display: "flex",
     justifyContent: "center",
+    alignItems: "center",
   }),
 
   leadershipBox: mergeStyles({

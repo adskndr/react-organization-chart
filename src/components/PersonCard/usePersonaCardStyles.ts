@@ -59,6 +59,14 @@ const personaCardStyles = mergeStyleSets({
     // PERSON_CARD_HEIGHT, and the optional actions bar adds its own height
     // on top of that. A fixed height here would clip the actions bar.
     width: PERSON_CARD_WIDTH,
+    // Fluent's DocumentCard ships with its own default margin (meant for
+    // loose card grids). A Stack normally resets that on its children as
+    // part of implementing childrenGap, which is why cards inside teamBox
+    // sit flush against its border — but managerBox is a plain div with no
+    // such reset, so that leftover margin showed up as extra space around
+    // the manager's card. Zeroing it here makes both identical regardless
+    // of what kind of container the card sits in.
+    margin: 0,
     boxSizing: "border-box",
     borderStyle: "solid",
     borderWidth: 1,
