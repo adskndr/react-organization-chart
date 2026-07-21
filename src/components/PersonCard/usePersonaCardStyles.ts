@@ -1,5 +1,6 @@
 import { IButtonStyles, IDocumentCardActionsStyles, IStackStyles, mergeStyles, mergeStyleSets } from "@fluentui/react";
 import type { Theme } from "spfx-uifabric-themes";
+import { PERSON_CARD_WIDTH, PERSON_CARD_HEIGHT } from "../../common/cardDimensions";
 const currentTheme: Theme = window.__themeState__.theme;
 
 // All computed once at module load instead of on every render of every
@@ -41,8 +42,14 @@ const personaCardStyles = mergeStyleSets({
     fontSize: 16, color: currentTheme.themePrimary
   }),
   tile: mergeStyles({
-    minWidth: 260,
-    maxWidth: '260px !important',
+    // Fixed footprint instead of min/max-width-only: every card gets exactly
+    // the same width AND height regardless of name/title length, so cards
+    // placed side by side (e.g. lead + co-lead) always line up and any box
+    // drawn around them sizes predictably.
+    width: PERSON_CARD_WIDTH,
+    height: PERSON_CARD_HEIGHT,
+    boxSizing: "border-box",
+    overflow: "hidden",
     borderStyle: "solid",
     borderWidth: 1,
     borderRadius: 0,
@@ -63,12 +70,7 @@ const personaCardStyles = mergeStyleSets({
         borderColor: currentTheme.themePrimary,
       },
       "@media(max-width : 480px)": {
-        maxWidth: "100%",
-        minWidth: "100%",
-      },
-      "@media((min-width : 481px) and (max-width : 12480px))": {
-        maxWidth: 260,
-        minWidth: "min(50%, 260px)",
+        width: "100%",
       },
     }
   }),
