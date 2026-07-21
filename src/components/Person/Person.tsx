@@ -85,7 +85,7 @@ export const Person: React.FunctionComponent<IPersonProps> = (
     <>
       <Persona
         {...personProps}
-        size={size || PersonaSize.size40}
+        size={size || PersonaSize.size48}
         onRenderPrimaryText={_onRenderPrimaryText}
         onRenderSecondaryText={_onRenderSecondaryText}
         styles={{
