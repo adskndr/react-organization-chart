@@ -7,27 +7,16 @@ import {
   IDocumentCard,
 } from "@fluentui/react/lib/DocumentCard";
 
-import {
-  Stack,
-  IButtonProps,
-  HoverCard,
-  HoverCardType,
-  IExpandingCardProps,
-  PersonaSize,
-  DirectionalHint,
-} from "@fluentui/react";
+import { Stack, IButtonProps, PersonaSize } from "@fluentui/react";
+import { LivePersona } from "@pnp/spfx-controls-react/lib/controls/LivePersona";
 import { Person } from "../Person/Person";
-import { IUserInfo } from "../../models/IUserInfo";
-import { ExpandedCard, CompactCard } from "../HoverCard";
 import { usePersonaCardStyles } from "./usePersonaCardStyles";
 import { IPersonCardProps } from "./IPersonCardProps";
-
-const currentTheme = window.__themeState__.theme;
 
 export const PersonCard: React.FunctionComponent<IPersonCardProps> = (
   props: IPersonCardProps
 ) => {
-  const { userInfo, onUserSelected, showActionsBar, graphClient, sp } = props;
+  const { userInfo, onUserSelected, showActionsBar, graphClient, serviceScope } = props;
 
   const documentCardRef = React.useRef<IDocumentCard>(null);
   const {
@@ -96,66 +85,45 @@ export const PersonCard: React.FunctionComponent<IPersonCardProps> = (
     userInfo.workPhone,
   ]);
 
-  const onRenderCompactCard = React.useCallback(
-    (user: IUserInfo): JSX.Element => <CompactCard user={user} />,
-    []
-  );
-
-  const onRenderExpandedCard = React.useCallback(
-    (user: IUserInfo): JSX.Element => <ExpandedCard user={user} sp={sp} />,
-    [sp]
-  );
-
-  const expandingCardProps: IExpandingCardProps = React.useMemo(() => {
-    return {
-      onRenderCompactCard: onRenderCompactCard,
-      onRenderExpandedCard: onRenderExpandedCard,
-      renderData: userInfo,
-      directionalHint: DirectionalHint.rightTopEdge,
-      styles: {
-        expandedCard: { backgroundColor: currentTheme.neutralLighterAlt },
-      },
-      gapSpace: 5,
-      calloutProps: {
-        isBeakVisible: false,
-      },
-    };
-  }, [onRenderCompactCard, onRenderExpandedCard, userInfo]);
-
   return (
     <>
       <DocumentCard
         className={personaCardStyles.tile}
         componentRef={documentCardRef}
         onClick={() => {
-          //  documentCardRef.current.focus();
           if (userInfo.hasDirectReports) {
             onUserSelected(userInfo);
-            //
           }
         }}
       >
-        <HoverCard
-          expandingCardProps={expandingCardProps}
-          type={HoverCardType.expanding}
-        >
-          <DocumentCardDetails>
-            <Stack
-              horizontal
-              horizontalAlign="space-between"
-              styles={stackPersonaStyles}
-            >
-              <Person
-                text={userInfo.displayName}
-                secondaryText={userInfo.title}
-                userEmail={userInfo.email}
-                pictureUrl={userInfo.pictureUrl}
-                graphClient={graphClient}
-                size={PersonaSize.size48}
-              />
-            </Stack>
-          </DocumentCardDetails>
-        </HoverCard>
+        <DocumentCardDetails>
+          <Stack
+            horizontal
+            horizontalAlign="space-between"
+            styles={stackPersonaStyles}
+          >
+            {/* LivePersona wraps our own card content with Microsoft's
+                native persona card — presence, availability, working
+                hours, local time, contact, and "reports to" — the same
+                one Teams/Outlook/the native org chart use. No custom
+                Graph calls needed for any of that; it uses SharePoint's
+                built-in personCard experience via serviceScope. */}
+            <LivePersona
+              upn={userInfo.email}
+              serviceScope={serviceScope}
+              template={
+                <Person
+                  text={userInfo.displayName}
+                  secondaryText={userInfo.title}
+                  userEmail={userInfo.email}
+                  pictureUrl={userInfo.pictureUrl}
+                  graphClient={graphClient}
+                  size={PersonaSize.size48}
+                />
+              }
+            />
+          </Stack>
+        </DocumentCardDetails>
         {showActionsBar && (
           <DocumentCardActions
             actions={documentCardActions}

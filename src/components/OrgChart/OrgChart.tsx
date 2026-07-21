@@ -183,6 +183,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                   selectedUser={currentUser}
                   showActionsBar={showActionsBar}
                   graphClient={graphClient}
+                  serviceScope={context.serviceScope}
                 sp={sp}
                  />
               );
@@ -223,6 +224,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                         selectedUser={currentUser}
                         showActionsBar={showActionsBar}
                         graphClient={graphClient}
+                        serviceScope={context.serviceScope}
                 sp={sp}
                        />
                     ))}
@@ -241,6 +243,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                 selectedUser={currentUser}
                 showActionsBar={showActionsBar}
                 graphClient={graphClient}
+                serviceScope={context.serviceScope}
                 sp={sp}
                />
             );
@@ -357,6 +360,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                 selectedUser={currentUser}
                 showActionsBar={showActionsBar}
                 graphClient={graphClient}
+                serviceScope={context.serviceScope}
                 sp={sp}
                />
             </div>
@@ -545,6 +549,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                 selectedUser={currentUser}
                 showActionsBar={showActionsBar}
                 graphClient={graphClient}
+                serviceScope={context.serviceScope}
                 sp={sp}
                />
               {coLeadUser && (
@@ -555,6 +560,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                   selectedUser={currentUser}
                   showActionsBar={showActionsBar}
                   graphClient={graphClient}
+                  serviceScope={context.serviceScope}
                   sp={sp}
                  />
               )}
