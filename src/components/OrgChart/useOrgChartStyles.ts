@@ -93,6 +93,13 @@ const orgChartClasses = mergeStyleSets({
     boxSizing: "border-box",
     width: "fit-content",
     maxWidth: "100%",
+    // Real CSS gap instead of Fluent's tokens.childrenGap (which used a
+    // negative-margin technique that left phantom extra width on a
+    // fit-content Stack even with only one card inside — which is exactly
+    // what made this box wider than managerBox/leadershipBox for a single
+    // employee).
+    columnGap: "15px",
+    rowGap: "15px",
     // The box sizes to its own content (fit-content) rather than stretching
     // to the full row width, so it's no longer stretched/centered by its
     // parent's default flex behavior — without this it lands flush left

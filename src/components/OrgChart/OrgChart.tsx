@@ -576,7 +576,6 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         <Stack
           horizontal
           horizontalAlign="center"
-          tokens={{ childrenGap: 15 }}
           wrap
           className={
             renderDirectReports.length ? orgChartClasses.teamBox : undefined
