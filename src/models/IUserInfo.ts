@@ -1,4 +1,3 @@
-
 /* tslint:disable */
 import { IUser } from "./IUser";
 import { UserType } from "./UserType";
@@ -19,4 +18,5 @@ export interface IUserInfo extends  IUser {
   location?:string;
   office?: string;
   userType: UserType;
+  hideFromAddressLists?: boolean;
 }
