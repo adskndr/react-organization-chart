@@ -810,7 +810,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
       </Stack>
     );
   }
-
+  const shouldUseLeadershipWidth = renderPeers.length > 0 || !!coLeadUser;
   return (
     <>
       <Stack  styles={{root:{padding: 20}}} >
@@ -824,7 +824,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           <div
             ref={leadershipBoxRef}
             className={orgChartClasses.leadershipBox}
-            style={leadershipBoxWidth !== undefined ? { width: leadershipBoxWidth } : undefined}
+             style={shouldUseLeadershipWidth && leadershipBoxWidth !== undefined? { width: leadershipBoxWidth } : undefined}
           >
             {renderPeers}
             {currentUser && (
@@ -857,7 +857,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           </div>
           )}
         </Stack>
-        {((!isJobTitleFilterActive || startFromUserId) && renderManagers.length > 0) && renderDirectReports.length > 0 && (
+        {((!isJobTitleFilterActive || startFromUserId) && renderManagers.length > 0 || currentUser || renderPeers.length > 0) && renderDirectReports.length > 0 && (
           <Stack horizontalAlign="center">
             <div className={orgChartClasses.boxConnector} />
           </Stack>
