@@ -398,6 +398,31 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async () => {
       try {
+              // Nur Jobtitel ohne Manager:
+        // Der normale OrgChart darf hier NICHT den Manager laden.
+        if (isJobTitleFilterActive && !startFromUserId) {
+          dispatch({
+            type: EOrgChartTypes.SET_CURRENT_USER,
+            payload: undefined,
+          });
+
+          dispatch({
+            type: EOrgChartTypes.SET_RENDER_MANAGERS,
+            payload: [],
+          });
+
+          dispatch({
+            type: EOrgChartTypes.SET_RENDER_PEERS,
+            payload: [],
+          });
+
+          dispatch({
+            type: EOrgChartTypes.SET_IS_LOADING,
+            payload: false,
+          });
+
+          return;
+        }
         if (startFromUserId === undefined && !isJobTitleFilterActive) {
           // The person was removed from "Start from user" — clear out
           // whatever was shown before instead of leaving it stale.
@@ -790,7 +815,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     <>
       <Stack  styles={{root:{padding: 20}}} >
         <Stack horizontalAlign="center" verticalAlign="center">
-          {renderManagers.length > 0 && (
+          {(!isJobTitleFilterActive || startFromUserId) && renderManagers.length > 0 && (
             <>
               {renderManagers}
             </>
