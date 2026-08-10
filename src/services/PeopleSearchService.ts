@@ -136,15 +136,38 @@ export const getUsersUnderManagerByJobTitle = async (
   managerLoginName: string,
   jobTitle: string
 ): Promise<IUserInfo[]> => {
-  const normalizedJobTitle = (jobTitle ?? "").trim().toLowerCase();
-  const normalizedManager = (managerLoginName ?? "").trim().toLowerCase();
+  const normalizedJobTitle =
+    (jobTitle ?? "").trim();
 
-  if (!normalizedJobTitle || !normalizedManager) {
+  const normalizedManager =
+    (managerLoginName ?? "").trim();
+
+  // JobTitle is required.
+  if (!normalizedJobTitle) {
     return [];
   }
 
+  // No manager selected:
+  // return everyone with this JobTitle.
+  if (!normalizedManager) {
+    return getUsersByJobTitle(
+      sp,
+      [normalizedJobTitle]
+    );
+  }
+
+  const normalizedManagerLower =
+    normalizedManager.toLowerCase();
+
+  const normalizedJobTitleLower =
+    normalizedJobTitle.toLowerCase();
+
   // First find everybody with the requested JobTitle.
-  const candidates = await getUsersByJobTitle(sp, [jobTitle]);
+  const candidates =
+    await getUsersByJobTitle(
+      sp,
+      [normalizedJobTitle]
+    );
 
   if (candidates.length === 0) {
     return [];
@@ -162,8 +185,11 @@ export const getUsersUnderManagerByJobTitle = async (
       continue;
     }
 
-    // The manager himself must never appear in the results.
-    if (loginName.trim().toLowerCase() === normalizedManager) {
+    // Never show the selected manager himself.
+    if (
+      loginName.trim().toLowerCase() ===
+      normalizedManagerLower
+    ) {
       continue;
     }
 
@@ -171,21 +197,34 @@ export const getUsersUnderManagerByJobTitle = async (
     batchedSP.profiles
       .getPropertiesFor(loginName)
       .then((profile) => {
-        const managers: string[] = ((profile?.ExtendedManagers ?? []) as unknown[])
-        .filter((manager): manager is string => typeof manager === "string")
-        .map((manager: string) => manager.trim().toLowerCase());
+        const managers: string[] =
+          ((profile?.ExtendedManagers ?? []) as unknown[])
+            .filter(
+              (manager): manager is string =>
+                typeof manager === "string"
+            )
+            .map((manager: string) =>
+              manager.trim().toLowerCase()
+            );
 
-        const actualJobTitle = (profile?.Title ?? "")
-          .trim()
-          .toLowerCase();
+        const actualJobTitle =
+          (profile?.Title ?? "")
+            .trim()
+            .toLowerCase();
 
         const isBelowManager =
-          managers.indexOf(normalizedManager) !== -1;
+          managers.indexOf(
+            normalizedManagerLower
+          ) !== -1;
 
         const hasMatchingJobTitle =
-          actualJobTitle === normalizedJobTitle;
+          actualJobTitle ===
+          normalizedJobTitleLower;
 
-        if (isBelowManager && hasMatchingJobTitle) {
+        if (
+          isBelowManager &&
+          hasMatchingJobTitle
+        ) {
           result.push(candidate);
         }
       })

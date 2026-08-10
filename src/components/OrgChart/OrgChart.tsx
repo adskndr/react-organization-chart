@@ -532,35 +532,122 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async () => {
+      /*
+      * JobTitle filter:
+      * This works even when no Start-from-user is selected.
+      */
+      if (isJobTitleFilterActive) {
+        dispatch({
+          type: EOrgChartTypes.SET_IS_LOADING,
+          payload: true,
+        });
+
+        try {
+          const {
+            wRenderDirectReports,
+            wRenderPeers,
+          } = await loadOrgChart(startFromUserId ?? "");
+
+          if (cancelled) return;
+
+          dispatch({
+            type: EOrgChartTypes.SET_RENDER_DIRECT_REPORTS,
+            payload: wRenderDirectReports,
+          });
+
+          dispatch({
+            type: EOrgChartTypes.SET_RENDER_PEERS,
+            payload: wRenderPeers,
+          });
+
+          dispatch({
+            type: EOrgChartTypes.SET_IS_LOADING,
+            payload: false,
+          });
+        } catch (error) {
+          if (cancelled) return;
+
+          console.log(error);
+
+          dispatch({
+            type: EOrgChartTypes.SET_IS_LOADING,
+            payload: false,
+          });
+
+          dispatch({
+            type: EOrgChartTypes.SET_HAS_ERROR,
+            payload: {
+              hasError: true,
+              errorMessage: "error",
+            },
+          });
+        }
+
+        return;
+      }
+
+      /*
+      * Normal OrgChart:
+      * A current user is required.
+      */
       if (!currentUser || !currentUser.id) return;
+
       dispatch({
         type: EOrgChartTypes.SET_IS_LOADING,
         payload: true,
       });
 
-      const { wRenderDirectReports, wRenderPeers } = await loadOrgChart(
-        currentUser.id
-      );
-      if (cancelled) return;
+      try {
+        const {
+          wRenderDirectReports,
+          wRenderPeers,
+        } = await loadOrgChart(currentUser.id);
 
-      dispatch({
-        type: EOrgChartTypes.SET_RENDER_DIRECT_REPORTS,
-        payload: wRenderDirectReports,
-      });
-      dispatch({
-        type: EOrgChartTypes.SET_RENDER_PEERS,
-        payload: wRenderPeers,
-      });
-      dispatch({
-        type: EOrgChartTypes.SET_IS_LOADING,
-        payload: false,
-      });
+        if (cancelled) return;
+
+        dispatch({
+          type: EOrgChartTypes.SET_RENDER_DIRECT_REPORTS,
+          payload: wRenderDirectReports,
+        });
+
+        dispatch({
+          type: EOrgChartTypes.SET_RENDER_PEERS,
+          payload: wRenderPeers,
+        });
+
+        dispatch({
+          type: EOrgChartTypes.SET_IS_LOADING,
+          payload: false,
+        });
+      } catch (error) {
+        if (cancelled) return;
+
+        console.log(error);
+
+        dispatch({
+          type: EOrgChartTypes.SET_IS_LOADING,
+          payload: false,
+        });
+
+        dispatch({
+          type: EOrgChartTypes.SET_HAS_ERROR,
+          payload: {
+            hasError: true,
+            errorMessage: "error",
+          },
+        });
+      }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [currentUser, loadOrgChart]);
+  }, [
+    currentUser,
+    loadOrgChart,
+    isJobTitleFilterActive,
+    startFromUserId,
+  ]);
 
   if (!startFromUserId && !isJobTitleFilterActive) {
     return (
