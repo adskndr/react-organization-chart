@@ -171,9 +171,9 @@ export const getUsersUnderManagerByJobTitle = async (
     batchedSP.profiles
       .getPropertiesFor(loginName)
       .then((profile) => {
-        const managers = (profile?.ExtendedManagers ?? [])
+        const managers: string[] = ((profile?.ExtendedManagers ?? []) as unknown[])
         .filter((manager): manager is string => typeof manager === "string")
-        .map((manager) => manager.trim().toLowerCase());
+        .map((manager: string) => manager.trim().toLowerCase());
 
         const actualJobTitle = (profile?.Title ?? "")
           .trim()
