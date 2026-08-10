@@ -29,14 +29,19 @@ const orgChartClasses = mergeStyleSets({
   managerBox: mergeStyles({
     border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
     borderRadius: 4,
-    paddingTop: 4,
-    paddingBottom: 4,
-    paddingLeft: 6,
-    paddingRight: 6,
+    padding: "4px 6px",
     boxSizing: "border-box",
+
     display: "inline-flex",
     justifyContent: "center",
     alignItems: "center",
+
+    width: "max-content",
+    maxWidth: "100%",
+
+    alignSelf: "center",
+    flexGrow: 0,
+    flexShrink: 0,
   }),
 
   leadershipBox: mergeStyles({
@@ -45,7 +50,7 @@ const orgChartClasses = mergeStyleSets({
     padding: "4px 6px",
     boxSizing: "border-box",
 
-    width: "fit-content",
+    width: "max-content",
     maxWidth: "100%",
 
     minHeight: PERSON_CARD_HEIGHT + 8,
@@ -55,6 +60,9 @@ const orgChartClasses = mergeStyleSets({
     alignItems: "center",
 
     rowGap: "15px",
+    alignSelf: "center",
+    flexGrow: 0,
+    flexShrink: 0,
 }),
 
   leadershipGroup: mergeStyles({
@@ -62,9 +70,14 @@ const orgChartClasses = mergeStyleSets({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+
+    width: "max-content",
+    maxWidth: "100%",
+
     columnGap: "15px",
+
+    flexGrow: 0,
     flexShrink: 0,
-    width: "fit-content",
 }),
 
   teamBox: mergeStyles({
@@ -85,15 +98,20 @@ const orgChartClasses = mergeStyleSets({
     alignSelf: "center",
   }),
 
-   peersGroup: mergeStyles({ 
-    display: "flex", 
-    flexDirection: "row", 
-    alignItems: "center", 
-    justifyContent: "center", 
-    flexWrap: "wrap", 
-    gap: "15px", 
-    width: "fit-content", 
-    maxWidth: "100%", 
+   peersGroup: mergeStyles({
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+
+    width: "max-content",
+    maxWidth: "100%",
+
+    flexWrap: "wrap",
+    gap: "15px",
+
+    flexGrow: 0,
+    flexShrink: 0,
   }),
 
   boxConnector: mergeStyles({
@@ -103,6 +121,19 @@ const orgChartClasses = mergeStyleSets({
     borderLeftWidth: 1,
     borderLeftColor: "#ffffff",
   }), 
+
+  managersGroup: mergeStyles({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+
+    width: "max-content",
+    maxWidth: "100%",
+
+    flexGrow: 0,
+    flexShrink: 0,
+  }),
 });
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/explicit-function-return-type

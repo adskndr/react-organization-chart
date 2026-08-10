@@ -814,14 +814,13 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
 
   return (
     <>
-      <Stack styles={{ root: { padding: 20 } }}>
+      <Stack styles={{ root: { padding: 20, alignItems: "center", } }}>
 
         {/* Managers */}
-        {(!isJobTitleFilterActive || startFromUserId) &&
-          renderManagers.length > 0 && (
-            <>
+        {(!isJobTitleFilterActive || startFromUserId) && renderManagers.length > 0 && (
+            <div className={orgChartClasses.managersGroup}>
               {renderManagers}
-            </>
+            </div>
           )}
 
         {/* Connector: Manager -> Leadership */}
@@ -838,10 +837,6 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           <div
             ref={leadershipBoxRef}
             className={orgChartClasses.leadershipBox}
-            style={
-              shouldUseLeadershipWidth &&
-              leadershipBoxWidth !== undefined ? { width: leadershipBoxWidth } : undefined
-            }
           >
             {/* Peers */}
             {renderPeers.length > 0 && (
