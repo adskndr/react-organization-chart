@@ -173,7 +173,7 @@ export const getUsersUnderManagerByJobTitle = async (
       .then((profile) => {
         const managers = (profile?.ExtendedManagers ?? [])
         .filter((manager): manager is string => typeof manager === "string")
-        .map((manager: string) => manager.trim().toLowerCase());
+        .map((manager) => manager.trim().toLowerCase());
 
         const actualJobTitle = (profile?.Title ?? "")
           .trim()
