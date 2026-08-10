@@ -857,7 +857,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           </div>
           )}
         </Stack>
-        {renderDirectReports.length > 0 && (
+        {((!isJobTitleFilterActive || startFromUserId) && renderManagers.length > 0 || currentUser || renderPeers.length > 0) && renderDirectReports.length > 0 && (
           <Stack horizontalAlign="center">
             <div className={orgChartClasses.boxConnector} />
           </Stack>
