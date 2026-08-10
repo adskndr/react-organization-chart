@@ -722,7 +722,6 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
               <Stack horizontalAlign="center" verticalAlign="center">
                 {renderManagers}
               </Stack>
-              <div className={orgChartClasses.boxConnector} />
             </>
           )}
           <div
