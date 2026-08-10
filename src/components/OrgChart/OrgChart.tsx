@@ -555,11 +555,32 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async () => {
+
       /*
-      * JobTitle filter:
-      * This works even when no Start-from-user is selected.
+      * JobTitle filter WITHOUT manager:
+      * Clear everything that belongs to the normal OrgChart.
       */
-      if (isJobTitleFilterActive) {
+      if (isJobTitleFilterActive && !startFromUserId) {
+        dispatch({
+          type: EOrgChartTypes.SET_RENDER_MANAGERS,
+          payload: [],
+        });
+
+        dispatch({
+          type: EOrgChartTypes.SET_CURRENT_USER,
+          payload: undefined,
+        });
+
+        dispatch({
+          type: EOrgChartTypes.SET_CO_LEAD_USER,
+          payload: undefined,
+        });
+
+        dispatch({
+          type: EOrgChartTypes.SET_RENDER_PEERS,
+          payload: [],
+        });
+
         dispatch({
           type: EOrgChartTypes.SET_IS_LOADING,
           payload: true,
@@ -569,7 +590,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           const {
             wRenderDirectReports,
             wRenderPeers,
-          } = await loadOrgChart(startFromUserId ?? "");
+          } = await loadOrgChart("");
 
           if (cancelled) return;
 
@@ -610,8 +631,60 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
       }
 
       /*
-      * Normal OrgChart:
-      * A current user is required.
+      * JobTitle + Manager
+      */
+      if (isJobTitleFilterActive && startFromUserId) {
+        dispatch({
+          type: EOrgChartTypes.SET_IS_LOADING,
+          payload: true,
+        });
+
+        try {
+          const {
+            wRenderDirectReports,
+            wRenderPeers,
+          } = await loadOrgChart(startFromUserId);
+
+          if (cancelled) return;
+
+          dispatch({
+            type: EOrgChartTypes.SET_RENDER_DIRECT_REPORTS,
+            payload: wRenderDirectReports,
+          });
+
+          dispatch({
+            type: EOrgChartTypes.SET_RENDER_PEERS,
+            payload: wRenderPeers,
+          });
+
+          dispatch({
+            type: EOrgChartTypes.SET_IS_LOADING,
+            payload: false,
+          });
+        } catch (error) {
+          if (cancelled) return;
+
+          console.log(error);
+
+          dispatch({
+            type: EOrgChartTypes.SET_IS_LOADING,
+            payload: false,
+          });
+
+          dispatch({
+            type: EOrgChartTypes.SET_HAS_ERROR,
+            payload: {
+              hasError: true,
+              errorMessage: "error",
+            },
+          });
+        }
+
+        return;
+      }
+
+      /*
+      * Normal OrgChart
       */
       if (!currentUser || !currentUser.id) return;
 
