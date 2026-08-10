@@ -9,20 +9,11 @@
           "manifest": "./src/webparts/organizationChart/OrganizationChartWebPart.manifest.json"
         }
       ]
-    },
-    "position-directory-web-part": {
-      "components": [
-        {
-          "entrypoint": "./lib/webparts/positionDirectory/PositionDirectoryWebPart.js",
-          "manifest": "./src/webparts/positionDirectory/PositionDirectoryWebPart.manifest.json"
-        }
-      ]
     }
   },
   "externals": {},
   "localizedResources": {
     "OrganizationChartWebPartStrings": "lib/webparts/organizationChart/loc/{locale}.js",
-    "PositionDirectoryWebPartStrings": "lib/webparts/positionDirectory/loc/{locale}.js",
     "PropertyControlStrings": "node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js",
     "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js"
   }

@@ -23,6 +23,10 @@ import { useWrappedContentWidth } from "../../hooks/useWrappedContentWidth";
 
 import "./OrgChart.module.scss";
 import { Placeholder } from "../Placeholder/PlaceholderComponent";
+import {
+  getUsersByJobTitle,
+  getUsersUnderManagerByJobTitle,
+} from "../../services/PeopleSearchService";
 
 
 const initialState: IOrgChartState = {
@@ -72,6 +76,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     showPeers,
     departmentFilterSelected,
     departmentFilterText,
+    jobTitleFilterText,
     graphClient,
     sp,
   }: IOrgChartProps = props;
@@ -145,6 +150,8 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     (departmentFilterSelected ?? []).length > 0 ||
     !!(departmentFilterText ?? "").trim();
 
+  const isJobTitleFilterActive: boolean = !!(jobTitleFilterText ?? "").trim();
+
   const loadOrgChart = React.useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (selectedUser: string): Promise<any> => {
@@ -152,6 +159,61 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
       const wRenderPeers: JSX.Element[] = [];
 
       try {
+                /*
+         * JobTitle filter mode.
+         *
+         * Manager + JobTitle:
+         *   only matching people somewhere below the manager.
+         *
+         * JobTitle without Manager:
+         *   all matching people in the organization.
+         */
+        if (isJobTitleFilterActive) {
+          const people = startFromUserId
+            ? await getUsersUnderManagerByJobTitle(
+                sp,
+                startFromUserId,
+                jobTitleFilterText!.trim()
+              )
+            : await getUsersByJobTitle(
+                sp,
+                [jobTitleFilterText!.trim()]
+              );
+
+          const filteredPeople = sortReportsPriority(
+            people.filter((person) =>
+              matchesDepartmentFilter(person.department)
+            )
+          );
+
+          for (const person of filteredPeople) {
+            wRenderDirectReports.push(
+              <PersonCard
+                key={`jobtitle-${person.id ?? person.email}`}
+                userInfo={person}
+                onUserSelected={onUserSelected}
+                selectedUser={currentUser}
+                showActionsBar={showActionsBar}
+                graphClient={graphClient}
+                serviceScope={context.serviceScope}
+                sp={sp}
+              />
+            );
+          }
+
+          dispatch({
+            type: EOrgChartTypes.SET_HAS_ERROR,
+            payload: {
+              hasError: false,
+              errorMessage: "",
+            },
+          });
+
+          return {
+            wRenderDirectReports,
+            wRenderPeers,
+          };
+        }
         const profileResponse = await getUserProfile(
           sp,
           selectedUser,
@@ -298,6 +360,8 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
       sortReportsPriority,
       isCoLead,
       orgChartClasses.coLeadGroup,
+      jobTitleFilterText,
+      isJobTitleFilterActive,
     ]
   );
 
@@ -307,7 +371,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async () => {
       try {
-        if (startFromUserId === undefined) {
+        if (startFromUserId === undefined && !isJobTitleFilterActive) {
           // The person was removed from "Start from user" — clear out
           // whatever was shown before instead of leaving it stale.
           dispatch({ type: EOrgChartTypes.SET_CURRENT_USER, payload: undefined });
@@ -493,7 +557,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     };
   }, [currentUser, loadOrgChart]);
 
-  if (!startFromUserId) {
+  if (!startFromUserId && !isJobTitleFilterActive) {
     return (
       <Placeholder
       iconName="Edit"
@@ -552,6 +616,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             style={leadershipBoxWidth !== undefined ? { width: leadershipBoxWidth } : undefined}
           >
             {renderPeers}
+            {currentUser && (
             <div className={orgChartClasses.leadershipGroup}>
               <PersonCard
                 key={`current-${currentUser?.id}`}
@@ -577,6 +642,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                  />
               )}
             </div>
+            )}
           </div>
         </Stack>
         {renderDirectReports.length > 0 && (
@@ -584,10 +650,12 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             <div className={orgChartClasses.boxConnector} />
           </Stack>
         )}
-        {isDepartmentFilterActive && renderDirectReports.length === 0 && (
+        {(isDepartmentFilterActive || isJobTitleFilterActive) && renderDirectReports.length === 0 && (
           <Stack horizontal horizontalAlign="center" styles={{ root: { padding: 10 } }}>
             <Text variant="medium">
-              No direct reports found for the selected department filter.
+              {isJobTitleFilterActive
+                ? `No people found with JobTitle "${jobTitleFilterText}".`
+                : "No direct reports found for the selected department filter."}
             </Text>
           </Stack>
         )}

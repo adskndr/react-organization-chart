@@ -124,3 +124,93 @@ export const getJobTitles = async (sp: SPFI): Promise<string[]> => {
     return [];
   }
 };
+
+/**
+ * Returns people with the specified JobTitle who are somewhere
+ * below the selected manager.
+ *
+ * All hierarchy levels are checked.
+ */
+export const getUsersUnderManagerByJobTitle = async (
+  sp: SPFI,
+  managerLoginName: string,
+  jobTitle: string
+): Promise<IUserInfo[]> => {
+  const normalizedJobTitle = (jobTitle ?? "").trim().toLowerCase();
+  const normalizedManager = (managerLoginName ?? "").trim().toLowerCase();
+
+  if (!normalizedJobTitle || !normalizedManager) {
+    return [];
+  }
+
+  // First find everybody with the requested JobTitle.
+  const candidates = await getUsersByJobTitle(sp, [jobTitle]);
+
+  if (candidates.length === 0) {
+    return [];
+  }
+
+  const result: IUserInfo[] = [];
+
+  const [batchedSP, execute] = sp.batched();
+
+  for (const candidate of candidates) {
+    const loginName =
+      candidate.id ?? candidate.email;
+
+    if (!loginName) {
+      continue;
+    }
+
+    // The manager himself must never appear in the results.
+    if (loginName.trim().toLowerCase() === normalizedManager) {
+      continue;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    batchedSP.profiles
+      .getPropertiesFor(loginName)
+      .then((profile) => {
+        const managers = (profile?.ExtendedManagers ?? []).map(
+          (manager) => manager.trim().toLowerCase()
+        );
+
+        const actualJobTitle = (profile?.Title ?? "")
+          .trim()
+          .toLowerCase();
+
+        const isBelowManager =
+          managers.indexOf(normalizedManager) !== -1;
+
+        const hasMatchingJobTitle =
+          actualJobTitle === normalizedJobTitle;
+
+        if (isBelowManager && hasMatchingJobTitle) {
+          result.push(candidate);
+        }
+      })
+      .catch((error) => {
+        console.log(
+          `Could not load profile for ${loginName}`,
+          error
+        );
+      });
+  }
+
+  await execute();
+
+  return result
+    .filter(
+      (person, index, array) =>
+        array.findIndex(
+          (p) =>
+            (p.id ?? p.email) ===
+            (person.id ?? person.email)
+        ) === index
+    )
+    .sort((a, b) =>
+      (a.displayName ?? "").localeCompare(
+        b.displayName ?? ""
+      )
+    );
+};

@@ -34,6 +34,7 @@ export interface IOrganizationChartWebPartProps {
   showActionsBar: boolean;
   departmentFilterSelected: string[];
   departmentFilterText: string;
+  jobTitleFilterText: string;
 }
 
 export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrganizationChartWebPartProps> {
@@ -138,6 +139,7 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
         showPeers: this.properties.showPeers,
         departmentFilterSelected: this.properties.departmentFilterSelected,
         departmentFilterText: this.properties.departmentFilterText,
+        jobTitleFilterText: this.properties.jobTitleFilterText,
         graphClient: this._graphClient,
         sp: this.sp,
       }
@@ -196,6 +198,11 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
                   principalType: [PrincipalType.Users],
                   onPropertyChange: this._onSelectedUserChanged,
                   properties: this.properties,
+                }),
+                PropertyPaneTextField("jobTitleFilterText", {
+                  label: "JobTitle / Position",
+                  description:
+                    "Optional. Beispiel: Lernende. Ohne Manager werden alle Personen mit diesem JobTitle angezeigt. Mit Manager nur Personen unterhalb dieses Managers.",
                 }),
                 PropertyFieldPeoplePicker("coLeadUser", {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
