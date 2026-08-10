@@ -399,6 +399,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           });
           return;
         }
+        if (cancelled || !startFromUserId) return;
         const profileResponse = await getUserProfile(
           sp,
           startFromUserId,
