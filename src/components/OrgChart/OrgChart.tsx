@@ -171,7 +171,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         if (isJobTitleFilterActive) {
           let people: IUserInfo[];
 
-          const jobTitles = jobTitleFilterText
+          const jobTitles = (jobTitleFilterText ?? "")
             .split(/[;,]/)
             .map((title) => title.trim())
             .filter(Boolean);
@@ -187,7 +187,9 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
               )
             );
 
-            people = peoplePerJobTitle.flat();
+            people = ([] as IUserInfo[]).concat(
+              ...peoplePerJobTitle
+            );
           } else {
             people = await getUsersByJobTitle(
               sp,
