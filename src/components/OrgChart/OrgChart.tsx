@@ -169,16 +169,20 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
          *   all matching people in the organization.
          */
         if (isJobTitleFilterActive) {
-          const people = startFromUserId
-            ? await getUsersUnderManagerByJobTitle(
-                sp,
-                startFromUserId,
-                jobTitleFilterText!.trim()
-              )
-            : await getUsersByJobTitle(
-                sp,
-                [jobTitleFilterText!.trim()]
-              );
+          let people: IUserInfo[];
+
+          if (startFromUserId) {
+            people = await getUsersUnderManagerByJobTitle(
+              sp,
+              startFromUserId,
+              jobTitleFilterText!.trim()
+            );
+          } else {
+            people = await getUsersByJobTitle(
+              sp,
+              [jobTitleFilterText!.trim()]
+            );
+          }
 
           const filteredPeople = sortReportsPriority(
             people.filter((person) =>
