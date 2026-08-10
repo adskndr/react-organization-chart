@@ -171,18 +171,39 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
         if (isJobTitleFilterActive) {
           let people: IUserInfo[];
 
+          const jobTitles = jobTitleFilterText
+            .split(/[;,]/)
+            .map((title) => title.trim())
+            .filter(Boolean);
+
           if (startFromUserId) {
-            people = await getUsersUnderManagerByJobTitle(
-              sp,
-              startFromUserId,
-              jobTitleFilterText!.trim()
+            const peoplePerJobTitle = await Promise.all(
+              jobTitles.map((jobTitle) =>
+                getUsersUnderManagerByJobTitle(
+                  sp,
+                  startFromUserId,
+                  jobTitle
+                )
+              )
             );
+
+            people = peoplePerJobTitle.flat();
           } else {
             people = await getUsersByJobTitle(
               sp,
-              [jobTitleFilterText!.trim()]
+              jobTitles
             );
           }
+
+          // Duplikate entfernen
+          people = people.filter(
+            (person, index, array) =>
+              array.findIndex(
+                (p) =>
+                  (p.id ?? p.email) ===
+                  (person.id ?? person.email)
+              ) === index
+          );
 
           const filteredPeople = sortReportsPriority(
             people.filter((person) =>
