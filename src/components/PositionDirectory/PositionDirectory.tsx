@@ -37,16 +37,18 @@ export const PositionDirectory: React.FunctionComponent<
     setIsLoading(true);
     setHasError(false);
 
-    getUsersByJobTitle(sp, jobTitles ?? [])
-      .then((result) => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    (async (): Promise<void> => {
+      try {
+        const result = await getUsersByJobTitle(sp, jobTitles ?? []);
         if (!cancelled) setPeople(result);
-      })
-      .catch(() => {
+      } catch (error) {
+        console.log(error);
         if (!cancelled) setHasError(true);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setIsLoading(false);
-      });
+      }
+    })();
 
     return () => {
       cancelled = true;
