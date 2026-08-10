@@ -398,29 +398,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async () => {
       try {
-              // Nur Jobtitel ohne Manager:
-        // Der normale OrgChart darf hier NICHT den Manager laden.
-        if (isJobTitleFilterActive && !startFromUserId) {
-          dispatch({
-            type: EOrgChartTypes.SET_CURRENT_USER,
-            payload: undefined,
-          });
-
-          dispatch({
-            type: EOrgChartTypes.SET_RENDER_MANAGERS,
-            payload: [],
-          });
-
-          dispatch({
-            type: EOrgChartTypes.SET_RENDER_PEERS,
-            payload: [],
-          });
-
-          dispatch({
-            type: EOrgChartTypes.SET_IS_LOADING,
-            payload: false,
-          });
-
+        if (isJobTitleFilterActive) {
           return;
         }
         if (startFromUserId === undefined && !isJobTitleFilterActive) {
@@ -826,7 +804,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             style={leadershipBoxWidth !== undefined ? { width: leadershipBoxWidth } : undefined}
           >
             {renderPeers}
-            {currentUser && (
+            {currentUser && (!isJobTitleFilterActive || startFromUserId) && (
             <div className={orgChartClasses.leadershipGroup}>
               <PersonCard
                 key={`current-${currentUser?.id}`}
