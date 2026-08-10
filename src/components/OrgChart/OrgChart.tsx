@@ -717,7 +717,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     <>
       <Stack  styles={{root:{padding: 20}}} >
         <Stack horizontalAlign="center" verticalAlign="center">
-          {renderManagers.length > 0 && (
+          {!isJobTitleFilterActive && renderManagers.length > 0 && (
             <>
               <Stack horizontalAlign="center" verticalAlign="center">
                 {renderManagers}
