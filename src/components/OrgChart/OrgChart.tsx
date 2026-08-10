@@ -811,71 +811,107 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     );
   }
   const shouldUseLeadershipWidth = renderPeers.length > 0 || !!coLeadUser;
+
   return (
     <>
-      <Stack  styles={{root:{padding: 20}}} >
-        <Stack horizontalAlign="center" verticalAlign="center">
-          {(!isJobTitleFilterActive || startFromUserId) && (renderManagers.length > 0) && (
+      <Stack styles={{ root: { padding: 20 } }}>
+
+        {/* Managers */}
+        {(!isJobTitleFilterActive || startFromUserId) &&
+          renderManagers.length > 0 && (
             <>
               {renderManagers}
             </>
           )}
-          {(currentUser || renderPeers.length > 0) && (
+
+        {/* Connector: Manager -> Leadership */}
+        {(!isJobTitleFilterActive || startFromUserId) &&
+          renderManagers.length > 0 &&
+          (currentUser || renderPeers.length > 0) && (
+            <Stack horizontalAlign="center">
+              <div className={orgChartClasses.boxConnector} />
+            </Stack>
+          )}
+
+        {/* Leadership: Peers + Lead + Co-Lead */}
+        {(currentUser || renderPeers.length > 0) && (
           <div
             ref={leadershipBoxRef}
             className={orgChartClasses.leadershipBox}
-             style={shouldUseLeadershipWidth && leadershipBoxWidth !== undefined? { width: leadershipBoxWidth } : undefined}
+            style={
+              shouldUseLeadershipWidth &&
+              leadershipBoxWidth !== undefined ? { width: leadershipBoxWidth } : undefined
+            }
           >
-            {renderPeers}
+            {/* Peers */}
+            {renderPeers.length > 0 && (
+              <div className={orgChartClasses.peersGroup}>
+                {renderPeers}
+              </div>
+            )}
+
+            {/* Lead + Co-Lead */}
             {currentUser && (
-            <div className={orgChartClasses.leadershipGroup}>
-              <PersonCard
-                key={`current-${currentUser?.id}`}
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                userInfo={currentUser!}
-                onUserSelected={onUserSelected}
-                selectedUser={currentUser}
-                showActionsBar={showActionsBar}
-                graphClient={graphClient}
-                serviceScope={context.serviceScope}
-                sp={sp}
-               />
-              {coLeadUser && (
+              <div className={orgChartClasses.leadershipGroup}>
                 <PersonCard
-                  key={`co-lead-${coLeadUser.id}`}
-                  userInfo={coLeadUser}
+                  key={`current-${currentUser.id}`}
+                  userInfo={currentUser}
                   onUserSelected={onUserSelected}
                   selectedUser={currentUser}
                   showActionsBar={showActionsBar}
                   graphClient={graphClient}
                   serviceScope={context.serviceScope}
                   sp={sp}
-                 />
-              )}
-            </div>
+                />
+
+                {coLeadUser && (
+                  <PersonCard
+                    key={`co-lead-${coLeadUser.id}`}
+                    userInfo={coLeadUser}
+                    onUserSelected={onUserSelected}
+                    selectedUser={currentUser}
+                    showActionsBar={showActionsBar}
+                    graphClient={graphClient}
+                    serviceScope={context.serviceScope}
+                    sp={sp}
+                  />
+                )}
+              </div>
             )}
           </div>
+        )}
+
+        {/* Connector: Leadership -> Direct Reports */}
+        {(currentUser || renderPeers.length > 0) &&
+          renderDirectReports.length > 0 && (
+            <Stack horizontalAlign="center">
+              <div className={orgChartClasses.boxConnector} />
+            </Stack>
           )}
-        </Stack>
-        {((!isJobTitleFilterActive || startFromUserId) && renderManagers.length > 0 || currentUser || renderPeers.length > 0) && renderDirectReports.length > 0 && (
-          <Stack horizontalAlign="center">
-            <div className={orgChartClasses.boxConnector} />
-          </Stack>
-        )}
-        {(isDepartmentFilterActive || isJobTitleFilterActive) && renderDirectReports.length === 0 && (
-          <Stack horizontal horizontalAlign="center" styles={{ root: { padding: 10 } }}>
-            <Text variant="medium">
-              {isJobTitleFilterActive
-                ? `No people found with JobTitle "${jobTitleFilterText}".`
-                : "No direct reports found for the selected department filter."}
-            </Text>
-          </Stack>
-        )}
+
+        {/* Filter message */}
+        {(isDepartmentFilterActive || isJobTitleFilterActive) &&
+          renderDirectReports.length === 0 && (
+            <Stack
+              horizontal
+              horizontalAlign="center"
+              styles={{ root: { padding: 10 } }}
+            >
+              <Text variant="medium">
+                {isJobTitleFilterActive
+                  ? `No people found with JobTitle "${jobTitleFilterText}".`
+                  : "No direct reports found for the selected department filter."}
+              </Text>
+            </Stack>
+          )}
+
+        {/* Direct Reports */}
         {renderDirectReports.length > 0 && (
           <div
             ref={teamBoxRef}
             className={orgChartClasses.teamBox}
-            style={teamBoxWidth !== undefined ? { width: teamBoxWidth } : undefined}
+            style={teamBoxWidth !== undefined? { width: teamBoxWidth }: undefined
+            }
           >
             {renderDirectReports}
           </div>

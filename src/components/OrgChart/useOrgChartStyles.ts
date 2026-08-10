@@ -42,27 +42,30 @@ const orgChartClasses = mergeStyleSets({
   leadershipBox: mergeStyles({
     border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
     borderRadius: 4,
-    paddingTop: 4,
-    paddingBottom: 4,
-    paddingLeft: 6,
-    paddingRight: 6,
+    padding: "4px 6px",
     boxSizing: "border-box",
+
+    width: "fit-content",
     maxWidth: "100%",
-    minHeight: PERSON_CARD_HEIGHT + 8, // card height + top/bottom padding
-    display: "inline-flex",
-    flexWrap: "wrap",
-    justifyContent: "center",
+
+    minHeight: PERSON_CARD_HEIGHT + 8,
+
+    display: "flex",
+    flexDirection: "column",
     alignItems: "center",
-    columnGap: "15px",
+
     rowGap: "15px",
-  }),
+}),
 
   leadershipGroup: mergeStyles({
     display: "flex",
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     columnGap: "15px",
     flexShrink: 0,
-  }),
+    width: "fit-content",
+}),
 
   teamBox: mergeStyles({
     border: `1px solid ${currentTheme.neutralQuaternaryAlt}`,
@@ -82,13 +85,24 @@ const orgChartClasses = mergeStyleSets({
     alignSelf: "center",
   }),
 
+   peersGroup: mergeStyles({ 
+    display: "flex", 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "center", 
+    flexWrap: "wrap", 
+    gap: "15px", 
+    width: "fit-content", 
+    maxWidth: "100%", 
+  }),
+
   boxConnector: mergeStyles({
     width: 0,
     height: 12,
     borderLeftStyle: "solid",
     borderLeftWidth: 1,
     borderLeftColor: "#ffffff",
-  }),
+  }), 
 });
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/explicit-function-return-type
