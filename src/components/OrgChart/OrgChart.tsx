@@ -1210,8 +1210,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
          * Dadurch kann bei einem reinen JobTitle-Filter
          * niemals die Manager-Box erscheinen.
          */}
-        {!isJobTitleFilterActive &&
-          renderManagers.length > 0 && (
+        {(!isJobTitleFilterActive || startFromUserId) && renderManagers.length > 0 && (
             <>
               {renderManagers}
             </>
