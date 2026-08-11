@@ -19,14 +19,9 @@ import {
 } from "@fluentui/react";
 
 import { useOrgChartStyles } from "./useOrgChartStyles";
-import { useWrappedContentWidth } from "../../hooks/useWrappedContentWidth";
-
 import "./OrgChart.module.scss";
 import { Placeholder } from "../Placeholder/PlaceholderComponent";
-import {
-  getUsersByJobTitle,
-  getUsersUnderManagerByJobTitle,
-} from "../../services/PeopleSearchService";
+import {getUsersByJobTitle,getUsersUnderManagerByJobTitle,} from "../../services/PeopleSearchService";
 
 
 const initialState: IOrgChartState = {
@@ -56,16 +51,6 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     error,
   }: IOrgChartState = state;
 
-  // CSS alone can't shrink-wrap a wrapping flex box to "the width of the
-  // widest row it actually wrapped into" (see useWrappedContentWidth) — so
-  // we measure it and apply it as an explicit width below, for both boxes
-  // that can hold more than one card side by side.
-  const [teamBoxRef, teamBoxWidth] = useWrappedContentWidth<HTMLDivElement>([
-    renderDirectReports,
-  ]);
-  const [leadershipBoxRef, leadershipBoxWidth] = useWrappedContentWidth<HTMLDivElement>(
-    [renderPeers, currentUser, coLeadUser]
-  );
 
   const {
     context,
@@ -814,30 +799,42 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
 
   return (
     <>
-      <Stack styles={{ root: { padding: 20, alignItems: "center", } }}>
+      <Stack
+        styles={{
+          root: {
+            padding: 20,
+            alignItems: "center",
+          },
+        }}
+      >
+        {/* ============================================================
+            MANAGERS
+            ============================================================ */}
 
-        {/* Managers */}
-        {(!isJobTitleFilterActive || startFromUserId) && renderManagers.length > 0 && (
+        {(!isJobTitleFilterActive || startFromUserId) &&
+          renderManagers.length > 0 && (
             <div className={orgChartClasses.managersGroup}>
               {renderManagers}
             </div>
           )}
 
-        {/* Connector: Manager -> Leadership */}
+        {/* ============================================================
+            MANAGER -> LEADERSHIP CONNECTOR
+            ============================================================ */}
+
         {(!isJobTitleFilterActive || startFromUserId) &&
           renderManagers.length > 0 &&
           (currentUser || renderPeers.length > 0) && (
-            <Stack horizontalAlign="center">
-              <div className={orgChartClasses.boxConnector} />
-            </Stack>
+            <div className={orgChartClasses.boxConnector} />
           )}
 
-        {/* Leadership: Peers + Lead + Co-Lead */}
+        {/* ============================================================
+            LEADERSHIP
+            ============================================================ */}
+
         {(currentUser || renderPeers.length > 0) && (
-          <div
-            ref={leadershipBoxRef}
-            className={orgChartClasses.leadershipBox}
-          >
+          <div className={orgChartClasses.leadershipBox}>
+            
             {/* Peers */}
             {renderPeers.length > 0 && (
               <div className={orgChartClasses.peersGroup}>
@@ -848,6 +845,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             {/* Lead + Co-Lead */}
             {currentUser && (
               <div className={orgChartClasses.leadershipGroup}>
+                
                 <PersonCard
                   key={`current-${currentUser.id}`}
                   userInfo={currentUser}
@@ -871,26 +869,36 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                     sp={sp}
                   />
                 )}
+
               </div>
             )}
+
           </div>
         )}
 
-        {/* Connector: Leadership -> Direct Reports */}
+        {/* ============================================================
+            LEADERSHIP -> DIRECT REPORTS CONNECTOR
+            ============================================================ */}
+
         {(currentUser || renderPeers.length > 0) &&
           renderDirectReports.length > 0 && (
-            <Stack horizontalAlign="center">
-              <div className={orgChartClasses.boxConnector} />
-            </Stack>
+            <div className={orgChartClasses.boxConnector} />
           )}
 
-        {/* Filter message */}
+        {/* ============================================================
+            FILTER MESSAGE
+            ============================================================ */}
+
         {(isDepartmentFilterActive || isJobTitleFilterActive) &&
           renderDirectReports.length === 0 && (
             <Stack
               horizontal
               horizontalAlign="center"
-              styles={{ root: { padding: 10 } }}
+              styles={{
+                root: {
+                  padding: 10,
+                },
+              }}
             >
               <Text variant="medium">
                 {isJobTitleFilterActive
@@ -900,14 +908,12 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             </Stack>
           )}
 
-        {/* Direct Reports */}
+        {/* ============================================================
+            DIRECT REPORTS
+            ============================================================ */}
+
         {renderDirectReports.length > 0 && (
-          <div
-            ref={teamBoxRef}
-            className={orgChartClasses.teamBox}
-            style={teamBoxWidth !== undefined? { width: teamBoxWidth }: undefined
-            }
-          >
+          <div className={orgChartClasses.teamBox}>
             {renderDirectReports}
           </div>
         )}
