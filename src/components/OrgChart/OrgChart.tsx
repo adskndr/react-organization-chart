@@ -22,7 +22,7 @@ import { useOrgChartStyles } from "./useOrgChartStyles";
 import "./OrgChart.module.scss";
 import { Placeholder } from "../Placeholder/PlaceholderComponent";
 import {getUsersByJobTitle,getUsersUnderManagerByJobTitle,} from "../../services/PeopleSearchService";
-
+import { useWrappedContentWidth } from "../../hooks/useWrappedContentWidth";
 const [teamBoxRef, teamBoxWidth] = useWrappedContentWidth<HTMLDivElement>([renderDirectReports,]);
 
 const initialState: IOrgChartState = {
