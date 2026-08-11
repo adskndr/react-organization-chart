@@ -23,7 +23,7 @@ import "./OrgChart.module.scss";
 import { Placeholder } from "../Placeholder/PlaceholderComponent";
 import {getUsersByJobTitle,getUsersUnderManagerByJobTitle,} from "../../services/PeopleSearchService";
 import { useWrappedContentWidth } from "../../hooks/useWrappedContentWidth";
-const [teamBoxRef, teamBoxWidth] = useWrappedContentWidth<HTMLDivElement>([renderDirectReports,]);
+
 
 const initialState: IOrgChartState = {
   isLoading: true,
@@ -51,7 +51,13 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     isLoading,
     error,
   }: IOrgChartState = state;
-
+  const [teamBoxRef, teamBoxWidth] = useWrappedContentWidth<HTMLDivElement>([renderDirectReports,]);
+  const [leadershipBoxRef, leadershipBoxWidth] =
+  useWrappedContentWidth<HTMLDivElement>([
+    renderPeers,
+    currentUser,
+    coLeadUser,
+  ]);
 
   const {
     context,
