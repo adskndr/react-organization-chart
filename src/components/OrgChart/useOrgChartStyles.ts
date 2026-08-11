@@ -110,6 +110,7 @@ const orgChartClasses = mergeStyleSets({
     maxWidth: "100%",
     display: "flex",
     flexWrap: "wrap",
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     columnGap: "15px",
