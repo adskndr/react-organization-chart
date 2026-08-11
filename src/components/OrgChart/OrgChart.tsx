@@ -23,6 +23,7 @@ import "./OrgChart.module.scss";
 import { Placeholder } from "../Placeholder/PlaceholderComponent";
 import {getUsersByJobTitle,getUsersUnderManagerByJobTitle,} from "../../services/PeopleSearchService";
 
+const [teamBoxRef, teamBoxWidth] = useWrappedContentWidth<HTMLDivElement>([renderDirectReports,]);
 
 const initialState: IOrgChartState = {
   isLoading: true,
@@ -913,7 +914,15 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             ============================================================ */}
 
         {renderDirectReports.length > 0 && (
-          <div className={orgChartClasses.teamBox}>
+          <div
+            ref={teamBoxRef}
+            className={orgChartClasses.teamBox}
+            style={
+              teamBoxWidth !== undefined
+                ? { width: teamBoxWidth }
+                : undefined
+            }
+          >
             {renderDirectReports}
           </div>
         )}

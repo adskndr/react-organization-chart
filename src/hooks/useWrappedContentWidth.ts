@@ -1,22 +1,22 @@
 import * as React from "react";
 
 /**
- * Measures the actual rendered width of a flex-wrap container's content —
- * i.e. the width of its widest wrapped row — and returns it so it can be
- * applied as an explicit width on the container itself.
+ * Measures the actual width of the widest rendered row
+ * inside a flex-wrap container.
  *
- * Why this is needed: a flex (or inline-flex) container with an automatic
- * width either sizes to fit all its children on one line, or — once that
- * doesn't fit the available space — falls back to the full available
- * width. There's no CSS-only way to make it shrink to "the width of the
- * widest row it actually wrapped into", which is exactly what makes a grey
- * box around 1-2 cards (single row, no wrapping) hug them tightly, while
- * the same box around 3+ cards (wraps to multiple rows) ends up far wider
- * than the cards it contains.
+ * Example:
  *
- * This measures the real rendered position of each direct child and
- * derives the box's own needed width from that, re-measuring whenever the
- * content or the available space changes.
+ *   Card   Card   Card
+ *   Card
+ *
+ * The returned width is the width of:
+ *
+ *   Card   Card   Card
+ *
+ * and NOT the complete container width.
+ *
+ * This allows the surrounding box to shrink-wrap around
+ * the widest actually rendered row.
  */
 export const useWrappedContentWidth = <T extends HTMLElement>(
   deps: React.DependencyList
@@ -26,31 +26,142 @@ export const useWrappedContentWidth = <T extends HTMLElement>(
 
   React.useLayoutEffect(() => {
     const el = ref.current;
-    if (!el) return;
+
+    if (!el) {
+      return;
+    }
 
     const measure = (): void => {
       const children = Array.from(el.children) as HTMLElement[];
+
       if (children.length === 0) {
         setWidth(undefined);
         return;
       }
-      const rects = children.map((child) => child.getBoundingClientRect());
-      const minLeft = Math.min(...rects.map((r) => r.left));
-      const maxRight = Math.max(...rects.map((r) => r.right));
-      setWidth(maxRight - minLeft);
+
+      const rects = children
+        .map((child) => child.getBoundingClientRect())
+        .filter((rect) => rect.width > 0 && rect.height > 0);
+
+      if (rects.length === 0) {
+        setWidth(undefined);
+        return;
+      }
+
+      /*
+       * Group cards by their vertical position.
+       *
+       * Cards in the same flex row have approximately
+       * the same top position.
+       */
+      const rows: DOMRect[][] = [];
+
+      const ROW_TOLERANCE = 2;
+
+      rects
+        .sort((a, b) => a.top - b.top || a.left - b.left)
+        .forEach((rect) => {
+          const existingRow = rows.find(
+            (row) => Math.abs(row[0].top - rect.top) <= ROW_TOLERANCE
+          );
+
+          if (existingRow) {
+            existingRow.push(rect);
+          } else {
+            rows.push([rect]);
+          }
+        });
+
+      /*
+       * Find the widest actual row.
+       */
+      let widestRowWidth = 0;
+
+      rows.forEach((row) => {
+        const minLeft = Math.min(...row.map((rect) => rect.left));
+        const maxRight = Math.max(...row.map((rect) => rect.right));
+
+        const rowWidth = maxRight - minLeft;
+
+        if (rowWidth > widestRowWidth) {
+          widestRowWidth = rowWidth;
+        }
+      });
+
+      if (widestRowWidth > 0) {
+        /*
+         * Add the container's horizontal padding/border.
+         *
+         * offsetWidth includes padding + border.
+         * clientWidth includes padding but not the border.
+         *
+         * The difference gives us the border width.
+         */
+        const computedStyle = window.getComputedStyle(el);
+
+        const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+        const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
+
+        const borderLeft =
+          parseFloat(computedStyle.borderLeftWidth) || 0;
+
+        const borderRight =
+          parseFloat(computedStyle.borderRightWidth) || 0;
+
+        const finalWidth =
+          widestRowWidth +
+          paddingLeft +
+          paddingRight +
+          borderLeft +
+          borderRight;
+
+        setWidth((previousWidth) => {
+          /*
+           * Avoid unnecessary renders when the measured width
+           * has not actually changed.
+           */
+          if (
+            previousWidth !== undefined &&
+            Math.abs(previousWidth - finalWidth) < 1
+          ) {
+            return previousWidth;
+          }
+
+          return finalWidth;
+        });
+      }
     };
 
-    // Measure once we have real layout, then keep re-measuring if the
-    // available width changes (e.g. the web part is resized) — a size
-    // change can shift how many cards fit per row, which changes the
-    // widest-row width even though nothing else about the content changed.
-    measure();
-    const resizeObserver = new ResizeObserver(measure);
+    /*
+     * Measure after the browser has completed the current layout.
+     */
+    const measureAsync = (): void => {
+      window.requestAnimationFrame(measure);
+    };
+
+    measureAsync();
+
+    /*
+     * Re-measure when the available size changes.
+     */
+    const resizeObserver = new ResizeObserver(() => {
+      measureAsync();
+    });
+
     resizeObserver.observe(el);
+
+    /*
+     * Also observe the parent because the parent can change width
+     * without the element itself changing its intrinsic dimensions.
+     */
+    if (el.parentElement) {
+      resizeObserver.observe(el.parentElement);
+    }
 
     return () => {
       resizeObserver.disconnect();
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 

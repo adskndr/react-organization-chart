@@ -1,9 +1,9 @@
 # Its different than the orginal.
 
 
-# Organization Chart
+## Organization Chart
 
-## Summary
+### Summary
 
 This web part shows an organization chart based on specified user, and user can navigate to show company organization. This web part can be installed on SharePoint Server 2019, and SharePoint Online.
 
@@ -13,7 +13,7 @@ This web part shows an organization chart based on specified user, and user can 
 
 ![Organization Chart](./assets/orgchart.gif)
 
-## Compatibility
+### Compatibility
 
 | :warning: Important          |
 |:---------------------------|
@@ -31,18 +31,18 @@ This sample is optimally compatible with the following environment configuration
 ![Hosted Workbench Compatible](https://img.shields.io/badge/Hosted%20Workbench-Compatible-green.svg)
 ![Compatible with Remote Containers](https://img.shields.io/badge/Remote%20Containers-Compatible-green.svg)
 
-## Applies to
+### Applies to
 
 - [SharePoint Framework](https://aka.ms/spfx)
 
-## Contributors
+### Contributors
 
 
 - [João Mendes](https://github.com/joaojmendes)
 - [Passoli Mirko](https://github.com/Paxol)
 - [Peter Paul Kirschner](https://github.com/petkir)
 
-## Version history
+### Version history
 
 |Version|Date|Comments|
 |-------|----|--------|
@@ -52,11 +52,11 @@ This sample is optimally compatible with the following environment configuration
 |1.1|Feb, 2024|Guest user filter + update to SPFx 1.18.2|
 |1.0|May, 2021|Initial release|
 
-## Prerequisites
+### Prerequisites
 
 No pre-requisites
 
-## Minimal Path to Awesome
+### Minimal Path to Awesome
 
 - Clone this repository
 - Ensure that you are at the solution folder
@@ -66,13 +66,13 @@ No pre-requisites
 
 >  This sample can also be opened with [VS Code Remote Development](https://code.visualstudio.com/docs/remote/remote-overview). Visit https://aka.ms/spfx-devcontainer for further instructions.
 
-## Features
+### Features
 
 This web part shows how to use PnPjs, Office-ui-fabric-react to create an Organization Chart
 
 This extension illustrates the following concepts:
 
-## Help
+### Help
 
 We do not support samples, but we do use GitHub to track issues and constantly want to improve these samples.
 
@@ -86,7 +86,7 @@ For questions regarding this sample, [create a new question](https://github.com/
 
 Finally, if you have an idea for improvement, [make a suggestion](https://github.com/pnp/sp-dev-fx-webparts/issues/new?assignees=&labels=Needs%3A+Triage+%3Amag%3A%2Ctype%3Aenhancement%2Csample%3A%20react-organisation-chart&template=question.yml&sample=react-organisation-chart&authors=@joaojmendes&title=react-organisation-chart%20-%20).
 
-## Disclaimer
+### Disclaimer
 
 **THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.**
 
