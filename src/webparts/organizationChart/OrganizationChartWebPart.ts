@@ -35,6 +35,7 @@ export interface IOrganizationChartWebPartProps {
   departmentFilterSelected: string[];
   departmentFilterText: string;
   jobTitleFilterText: string;
+  jobTitleExcludeFilterText: string;
 }
 
 export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrganizationChartWebPartProps> {
@@ -140,6 +141,7 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
         departmentFilterSelected: this.properties.departmentFilterSelected,
         departmentFilterText: this.properties.departmentFilterText,
         jobTitleFilterText: this.properties.jobTitleFilterText,
+        jobTitleExcludeFilterText: this.properties.jobTitleExcludeFilterText,
         graphClient: this._graphClient,
         sp: this.sp,
       }
@@ -202,7 +204,12 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
                 PropertyPaneTextField("jobTitleFilterText", {
                   label: "JobTitle / Position",
                   description:
-                    "Optional. Beispiel: Lernende. Ohne Manager werden alle Personen mit diesem JobTitle angezeigt. Mit Manager nur Personen unterhalb dieses Managers.",
+                    "Optional. Beispiel: Lernende. Es muss nicht der ganze Titel und nicht die exakte männliche/weibliche Form eingegeben werden (z.B. findet 'Lernende' auch 'Lernender'). Ohne Manager werden alle Personen mit diesem JobTitle angezeigt. Mit Manager nur Personen unterhalb dieses Managers.",
+                }),
+                PropertyPaneTextField("jobTitleExcludeFilterText", {
+                  label: "JobTitle / Position ausschliessen",
+                  description:
+                    "Optional. Beispiel: Lernende. Personen mit diesem JobTitle werden NICHT angezeigt — unabhängig von den anderen Filtern. Mehrere Werte mit Komma oder Semikolon trennen. Gleiches lockeres Matching wie oben.",
                 }),
                 PropertyFieldPeoplePicker("coLeadUser", {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any

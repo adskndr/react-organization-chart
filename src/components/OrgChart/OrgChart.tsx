@@ -21,7 +21,7 @@ import {
 import { useOrgChartStyles } from "./useOrgChartStyles";
 import "./OrgChart.module.scss";
 import { Placeholder } from "../Placeholder/PlaceholderComponent";
-import {getUsersByJobTitle,getUsersUnderManagerByJobTitle,} from "../../services/PeopleSearchService";
+import {getUsersByJobTitle,getUsersUnderManagerByJobTitle,matchesJobTitleExclude,} from "../../services/PeopleSearchService";
 import { useWrappedContentWidth } from "../../hooks/useWrappedContentWidth";
 
 
@@ -69,6 +69,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     departmentFilterSelected,
     departmentFilterText,
     jobTitleFilterText,
+    jobTitleExcludeFilterText,
     graphClient,
     sp,
   }: IOrgChartProps = props;
@@ -112,6 +113,25 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
       return false;
     },
     [departmentFilterSelected, departmentFilterText]
+  );
+
+  const excludeJobTitles: string[] = React.useMemo(
+    () =>
+      (jobTitleExcludeFilterText ?? "")
+        .split(/[;,]/)
+        .map((title) => title.trim())
+        .filter(Boolean),
+    [jobTitleExcludeFilterText]
+  );
+
+  // Returns true if the person should be KEPT — i.e. their JobTitle does NOT
+  // match one of the excluded titles above. Applied everywhere a person can
+  // end up rendered (normal direct reports/peers AND JobTitle-filter mode),
+  // so the exclude filter always wins regardless of which other filter is
+  // active.
+  const matchesJobTitleExcludeFilter = React.useCallback(
+    (title?: string): boolean => matchesJobTitleExclude(title, excludeJobTitles),
+    [excludeJobTitles]
   );
 
   const isDeputy = React.useCallback((user: IUserInfo): boolean => {
@@ -200,9 +220,9 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           );
 
           const filteredPeople = sortReportsPriority(
-            people.filter((person) =>
-              matchesDepartmentFilter(person.department)
-            )
+            people
+              .filter((person) => matchesDepartmentFilter(person.department))
+              .filter((person) => matchesJobTitleExcludeFilter(person.title))
           );
 
           for (const person of filteredPeople) {
@@ -257,13 +277,13 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           }
 
           const filteredDirectReports = sortReportsPriority(
-            Array.from(combinedReportsMap.values()).filter((report) =>
-              matchesDepartmentFilter(report.department)
-            )
+            Array.from(combinedReportsMap.values())
+              .filter((report) => matchesDepartmentFilter(report.department))
+              .filter((report) => matchesJobTitleExcludeFilter(report.title))
           );
-          const filteredPeers = profileResponse.peersList.filter((peer) =>
-            matchesDepartmentFilter(peer.department)
-          );
+          const filteredPeers = profileResponse.peersList
+            .filter((peer) => matchesDepartmentFilter(peer.department))
+            .filter((peer) => matchesJobTitleExcludeFilter(peer.title));
 
           if (showPeers === true) {
             for (const peerInfo of filteredPeers) {
@@ -376,6 +396,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
       showPeers,
       graphClient,
       matchesDepartmentFilter,
+      matchesJobTitleExcludeFilter,
       sortReportsPriority,
       isCoLead,
       orgChartClasses.coLeadGroup,

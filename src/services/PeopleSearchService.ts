@@ -7,6 +7,87 @@ import { IUserInfo } from "../models/IUserInfo";
 // not documents/sites.
 const PEOPLE_RESULTS_SOURCE_ID = "b09a7990-05ea-4af9-81ef-edfab16c4e31";
 
+// Minimum length a stem must keep after stripping a gender/number suffix.
+// Prevents short words like "Lehre" collapsing into an overly broad "Lehr*".
+const MIN_STEM_LENGTH = 4;
+
+// Common German gender/number endings, longest first so "innen" is tried
+// before "in" and doesn't get cut short.
+const GENDER_SUFFIXES = ["innen", "en", "er", "in", "e"];
+
+/**
+ * Strips a common German gender/number ending off a single word, e.g.
+ * "Lernende" -> "Lernend", "Lernender" -> "Lernend", "Mitarbeiterin" ->
+ * "Mitarbeiter". Used so one typed word matches multiple grammatical forms
+ * of the same job title instead of requiring an exact match.
+ */
+export const stripGenderSuffix = (word: string): string => {
+  const wWord = (word ?? "").trim();
+  for (const suffix of GENDER_SUFFIXES) {
+    if (
+      wWord.toLowerCase().endsWith(suffix) &&
+      wWord.length - suffix.length >= MIN_STEM_LENGTH
+    ) {
+      return wWord.slice(0, wWord.length - suffix.length);
+    }
+  }
+  return wWord;
+};
+
+/**
+ * Builds a JobTitle wildcard phrase for SharePoint KQL from a typed filter
+ * term: only the last word gets gender-suffix-stripped and a trailing `*`,
+ * so "Junior Lernende" becomes `Junior Lernend*` and matches "Junior
+ * Lernender", "Junior Lernenden", etc. Also means the term no longer has to
+ * be the complete job title — a leading fragment is enough.
+ */
+const buildJobTitleWildcardPhrase = (term: string): string => {
+  const words = (term ?? "").trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "";
+  const stem = stripGenderSuffix(words[words.length - 1]);
+  return [...words.slice(0, -1), stem].join(" ");
+};
+
+/**
+ * Loose match used everywhere a JobTitle filter term is compared against an
+ * actual JobTitle: case-insensitive, substring-based (so a partial title is
+ * enough) and gender-suffix-insensitive (so "Lernende" also matches
+ * "Lernender"/"Lernenden"). This is the client-side counterpart to the
+ * wildcard search query above, used e.g. to re-validate a profile's real
+ * JobTitle or to power the exclude filter.
+ */
+export const jobTitleMatchesTerm = (
+  actualJobTitle: string | undefined,
+  term: string
+): boolean => {
+  const wActual = (actualJobTitle ?? "").trim().toLowerCase();
+  const wTerm = (term ?? "").trim().toLowerCase();
+  if (!wActual || !wTerm) return false;
+
+  if (wActual.indexOf(wTerm) !== -1) return true;
+
+  const stem = buildJobTitleWildcardPhrase(wTerm).toLowerCase();
+  return !!stem && wActual.indexOf(stem) !== -1;
+};
+
+/**
+ * True if a person should be KEPT — i.e. their JobTitle does NOT match any
+ * of the given exclude terms (same loose matching as jobTitleMatchesTerm).
+ * Empty/undefined excludeTerms never filters anyone out.
+ */
+export const matchesJobTitleExclude = (
+  actualJobTitle: string | undefined,
+  excludeTerms: string[]
+): boolean => {
+  const wExcludeTerms = (excludeTerms ?? [])
+    .map((t) => t.trim())
+    .filter(Boolean);
+  if (wExcludeTerms.length === 0) return true;
+  return !wExcludeTerms.some((term) =>
+    jobTitleMatchesTerm(actualJobTitle, term)
+  );
+};
+
 /**
  * Flat, tree-free lookup of everyone whose JobTitle matches one of the given
  * values — e.g. ["Lernende", "Lernender"].
@@ -24,10 +105,17 @@ export const getUsersByJobTitle = async (
   const wJobTitles = (jobTitles ?? []).map((t) => t.trim()).filter(Boolean);
   if (wJobTitles.length === 0) return [];
 
-  // Exact-match each title, OR'd together:
-  // JobTitle:"Lernende" OR JobTitle:"Lernender"
+  // Loose, gender-insensitive wildcard match per title, OR'd together, e.g.
+  // typing "Lernende" builds JobTitle:"Lernend*" — matches "Lernende",
+  // "Lernender", "Lernenden", etc., and doesn't require the full title.
   const queryText = wJobTitles
-    .map((title) => `JobTitle:"${title.replace(/"/g, '\\"')}"`)
+    .map((title) => {
+      const phrase = buildJobTitleWildcardPhrase(title).replace(
+        /"/g,
+        '\\"'
+      );
+      return `JobTitle:"${phrase}*"`;
+    })
     .join(" OR ");
 
   try {
@@ -159,9 +247,6 @@ export const getUsersUnderManagerByJobTitle = async (
   const normalizedManagerLower =
     normalizedManager.toLowerCase();
 
-  const normalizedJobTitleLower =
-    normalizedJobTitle.toLowerCase();
-
   // First find everybody with the requested JobTitle.
   const candidates =
     await getUsersByJobTitle(
@@ -207,19 +292,17 @@ export const getUsersUnderManagerByJobTitle = async (
               manager.trim().toLowerCase()
             );
 
-        const actualJobTitle =
-          (profile?.Title ?? "")
-            .trim()
-            .toLowerCase();
-
         const isBelowManager =
           managers.indexOf(
             normalizedManagerLower
           ) !== -1;
 
-        const hasMatchingJobTitle =
-          actualJobTitle ===
-          normalizedJobTitleLower;
+        // Loose match (substring + gender-suffix-insensitive) instead of an
+        // exact comparison, consistent with the search query above.
+        const hasMatchingJobTitle = jobTitleMatchesTerm(
+          profile?.Title,
+          normalizedJobTitle
+        );
 
         if (
           isBelowManager &&

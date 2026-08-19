@@ -22,6 +22,17 @@ export interface IOrgChartProps {
    */
   jobTitleFilterText?: string;
 
+  /**
+   * Optional JobTitle / Position exclude filter — comma/semicolon separated.
+   * People whose JobTitle matches one of these values (same loose,
+   * gender-insensitive, partial match as jobTitleFilterText) are hidden
+   * from the chart, regardless of which other filters are active.
+   *
+   * Example:
+   * "Lernende, Praktikant"
+   */
+  jobTitleExcludeFilterText?: string;
+
   graphClient?: IGraphPhotoClient;
   sp: SPFI;
 }
