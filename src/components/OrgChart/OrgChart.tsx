@@ -70,6 +70,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
     departmentFilterText,
     jobTitleFilterText,
     jobTitleExcludeFilterText,
+    jobTitleDirectReportsOnly,
     graphClient,
     sp,
   }: IOrgChartProps = props;
@@ -194,7 +195,8 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
                 getUsersUnderManagerByJobTitle(
                   sp,
                   startFromUserId,
-                  jobTitle
+                  jobTitle,
+                  jobTitleDirectReportsOnly
                 )
               )
             );
@@ -401,6 +403,7 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
       isCoLead,
       orgChartClasses.coLeadGroup,
       jobTitleFilterText,
+      jobTitleDirectReportsOnly,
       isJobTitleFilterActive,
     ]
   );

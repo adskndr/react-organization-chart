@@ -33,6 +33,14 @@ export interface IOrgChartProps {
    */
   jobTitleExcludeFilterText?: string;
 
+  /**
+   * When true and both a Manager and a JobTitle filter are set, only people
+   * whose IMMEDIATE manager is the selected manager are shown (one level
+   * down). When false (default), the whole subtree below the manager is
+   * searched, at any depth.
+   */
+  jobTitleDirectReportsOnly?: boolean;
+
   graphClient?: IGraphPhotoClient;
   sp: SPFI;
 }

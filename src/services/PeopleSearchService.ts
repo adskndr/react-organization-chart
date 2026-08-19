@@ -217,12 +217,15 @@ export const getJobTitles = async (sp: SPFI): Promise<string[]> => {
  * Returns people with the specified JobTitle who are somewhere
  * below the selected manager.
  *
- * All hierarchy levels are checked.
+ * By default all hierarchy levels are checked. Pass directReportsOnly=true
+ * to only match people whose immediate manager is exactly the given
+ * manager (i.e. one level down, not the whole subtree).
  */
 export const getUsersUnderManagerByJobTitle = async (
   sp: SPFI,
   managerLoginName: string,
-  jobTitle: string
+  jobTitle: string,
+  directReportsOnly: boolean = false
 ): Promise<IUserInfo[]> => {
   const normalizedJobTitle =
     (jobTitle ?? "").trim();
@@ -292,10 +295,13 @@ export const getUsersUnderManagerByJobTitle = async (
               manager.trim().toLowerCase()
             );
 
-        const isBelowManager =
-          managers.indexOf(
-            normalizedManagerLower
-          ) !== -1;
+        // ExtendedManagers is ordered top-of-hierarchy -> immediate
+        // manager, so the LAST entry is always the person's direct
+        // manager. "directReportsOnly" checks exactly that last entry;
+        // otherwise any entry in the chain counts (whole subtree).
+        const isBelowManager = directReportsOnly
+          ? managers[managers.length - 1] === normalizedManagerLower
+          : managers.indexOf(normalizedManagerLower) !== -1;
 
         // Loose match (substring + gender-suffix-insensitive) instead of an
         // exact comparison, consistent with the search query above.

@@ -36,6 +36,7 @@ export interface IOrganizationChartWebPartProps {
   departmentFilterText: string;
   jobTitleFilterText: string;
   jobTitleExcludeFilterText: string;
+  jobTitleDirectReportsOnly: boolean;
 }
 
 export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrganizationChartWebPartProps> {
@@ -142,6 +143,7 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
         departmentFilterText: this.properties.departmentFilterText,
         jobTitleFilterText: this.properties.jobTitleFilterText,
         jobTitleExcludeFilterText: this.properties.jobTitleExcludeFilterText,
+        jobTitleDirectReportsOnly: this.properties.jobTitleDirectReportsOnly,
         graphClient: this._graphClient,
         sp: this.sp,
       }
@@ -210,6 +212,11 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
                   label: "JobTitle / Position ausschliessen",
                   description:
                     "Optional. Beispiel: Lernende. Personen mit diesem JobTitle werden NICHT angezeigt — unabhängig von den anderen Filtern. Mehrere Werte mit Komma oder Semikolon trennen. Gleiches lockeres Matching wie oben.",
+                }),
+                PropertyPaneToggle("jobTitleDirectReportsOnly", {
+                  label: "Nur direkte Reports (bei Manager + JobTitle)",
+                  offText: "Alle Ebenen unter dem Manager",
+                  onText: "Nur direkte Reports",
                 }),
                 PropertyFieldPeoplePicker("coLeadUser", {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
