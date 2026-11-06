@@ -27,6 +27,8 @@ import { spfi, SPFI, SPFx } from "@pnp/sp";
 import "@pnp/sp/profiles";
 import "@pnp/sp/webs";
 import "@pnp/sp/site-users/web";
+import "@pnp/sp/security/web";
+import { PermissionKind } from "@pnp/sp/security";
 import { getDepartments } from "../../services/DepartmentService";
 import { getManagerChainLength } from "../../services/ManagerChainService";
 import { IGraphPhotoClient } from "../../services/PhotoService";
@@ -64,13 +66,18 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
 
   public async onInit(): Promise<void> {
     _sp = spfi().using(SPFx(this.context));
+    // Admin = site collection admin OR anyone who can manage the site
+    // (this covers site owners, who are not always "site collection admins").
     try {
       const me = await _sp.web.currentUser.select("IsSiteAdmin")();
-      this._isAdmin = !!me.IsSiteAdmin;
+      this._isAdmin =
+        !!me.IsSiteAdmin ||
+        (await _sp.web.currentUserHasPermissions(PermissionKind.ManageWeb));
     } catch (error) {
-      console.log(error);
+      console.log("OrgChart: admin check failed", error);
       this._isAdmin = false;
     }
+    console.log("OrgChart: isAdmin =", this._isAdmin);
     try {
       // Used to load profile photos directly from Entra ID (Microsoft Graph)
       // instead of the classic SharePoint userphoto.aspx endpoint.
