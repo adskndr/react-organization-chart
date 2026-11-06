@@ -5,6 +5,7 @@ import { BaseClientSideWebPart } from "@microsoft/sp-webpart-base";
 import {
   IPropertyPaneConfiguration,
   IPropertyPaneDropdownOption,
+  IPropertyPaneGroup,
   PropertyPaneTextField,
   PropertyPaneToggle,
 } from "@microsoft/sp-property-pane";
@@ -14,12 +15,18 @@ import {
   PrincipalType,
   IPropertyFieldGroupOrPerson,
 } from "@pnp/spfx-property-controls/lib/PropertyFieldPeoplePicker";
+import {
+  PropertyFieldColorPicker,
+  PropertyFieldColorPickerStyle,
+} from "@pnp/spfx-property-controls/lib/PropertyFieldColorPicker";
 import * as strings from "OrganizationChartWebPartStrings";
 import { OrgChart } from "../../components/OrgChart/OrgChart";
 
 import { IOrgChartProps } from "../../components/OrgChart/IOrgChartProps";
 import { spfi, SPFI, SPFx } from "@pnp/sp";
 import "@pnp/sp/profiles";
+import "@pnp/sp/webs";
+import "@pnp/sp/site-users/web";
 import { getDepartments } from "../../services/DepartmentService";
 import { getManagerChainLength } from "../../services/ManagerChainService";
 import { IGraphPhotoClient } from "../../services/PhotoService";
@@ -37,6 +44,10 @@ export interface IOrganizationChartWebPartProps {
   jobTitleFilterText: string;
   jobTitleExcludeFilterText: string;
   jobTitleDirectReportsOnly: boolean;
+  // Appearance (only editable by site administrators, see _isAdmin).
+  backgroundColor?: string;
+  cardBackgroundColor?: string;
+  textColor?: string;
 }
 
 export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrganizationChartWebPartProps> {
@@ -45,9 +56,21 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
   private _graphClient?: IGraphPhotoClient;
   private _maxManagerLevels: number = 10;
   private _maxManagerLevelsLoadedFor?: string;
+  // True when the current user is a site collection administrator. Only
+  // these users get the appearance (colour) fields in the property pane.
+  // This is a UI restriction only: the values live in the page JSON, so
+  // anyone who can edit the page could still change them by other means.
+  private _isAdmin: boolean = false;
 
   public async onInit(): Promise<void> {
     _sp = spfi().using(SPFx(this.context));
+    try {
+      const me = await _sp.web.currentUser.select("IsSiteAdmin")();
+      this._isAdmin = !!me.IsSiteAdmin;
+    } catch (error) {
+      console.log(error);
+      this._isAdmin = false;
+    }
     try {
       // Used to load profile photos directly from Entra ID (Microsoft Graph)
       // instead of the classic SharePoint userphoto.aspx endpoint.
@@ -144,6 +167,9 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
         jobTitleFilterText: this.properties.jobTitleFilterText,
         jobTitleExcludeFilterText: this.properties.jobTitleExcludeFilterText,
         jobTitleDirectReportsOnly: this.properties.jobTitleDirectReportsOnly,
+        backgroundColor: this.properties.backgroundColor,
+        cardBackgroundColor: this.properties.cardBackgroundColor,
+        textColor: this.properties.textColor,
         graphClient: this._graphClient,
         sp: this.sp,
       }
@@ -177,6 +203,44 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
     return Version.parse("1.0");
   }
 
+  private _appearanceGroup(): IPropertyPaneGroup {
+    return {
+      groupName: strings.AppearanceGroupName,
+      groupFields: [
+        PropertyFieldColorPicker("backgroundColor", {
+          label: strings.backgroundColorLabel,
+          selectedColor: this.properties.backgroundColor,
+          onPropertyChange: this.onPropertyPaneFieldChanged,
+          properties: this.properties,
+          disabled: false,
+          alphaSliderHidden: true,
+          style: PropertyFieldColorPickerStyle.Full,
+          key: "backgroundColorFieldId",
+        }),
+        PropertyFieldColorPicker("cardBackgroundColor", {
+          label: strings.cardBackgroundColorLabel,
+          selectedColor: this.properties.cardBackgroundColor,
+          onPropertyChange: this.onPropertyPaneFieldChanged,
+          properties: this.properties,
+          disabled: false,
+          alphaSliderHidden: true,
+          style: PropertyFieldColorPickerStyle.Full,
+          key: "cardBackgroundColorFieldId",
+        }),
+        PropertyFieldColorPicker("textColor", {
+          label: strings.textColorLabel,
+          selectedColor: this.properties.textColor,
+          onPropertyChange: this.onPropertyPaneFieldChanged,
+          properties: this.properties,
+          disabled: false,
+          alphaSliderHidden: true,
+          style: PropertyFieldColorPickerStyle.Full,
+          key: "textColorFieldId",
+        }),
+      ],
+    };
+  }
+
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
     return {
       pages: [
@@ -185,6 +249,7 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
             description: strings.PropertyPaneDescription,
           },
           groups: [
+            ...(this._isAdmin ? [this._appearanceGroup()] : []),
             {
               groupName: strings.BasicGroupName,
               groupFields: [

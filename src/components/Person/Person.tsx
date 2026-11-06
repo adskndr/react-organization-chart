@@ -7,12 +7,15 @@ import {
 import { Text } from "@fluentui/react/lib/Text";
 import { IPersonProps } from "./IPersonProps";
 import { getUserPhotoUrl } from "../../services/PhotoService";
+import { useOrgChartColors } from "../../common/OrgChartThemeContext";
 
 export const Person: React.FunctionComponent<IPersonProps> = (
   props: IPersonProps
 ) => {
   const { text, secondaryText, userEmail, size, tertiaryText, graphClient } =
     props;
+  // Admin-configured text colour (undefined = keep the theme colour).
+  const { textColor } = useOrgChartColors();
 
   // Start with the classic SharePoint profile-photo endpoint as an immediate
   // fallback, then swap in the Entra ID (Microsoft Graph) photo once/if it
@@ -55,13 +58,15 @@ export const Person: React.FunctionComponent<IPersonProps> = (
           variant="mediumPlus"
           block
           nowrap
-          styles={{ root: { fontWeight: 600 } }}
+          styles={{
+            root: { fontWeight: 600, ...(textColor ? { color: textColor } : {}) },
+          }}
         >
           {text}
         </Text>
       </>
     );
-  }, [text]);
+  }, [text, textColor]);
 
   const _onRenderSecondaryText = React.useCallback(() => {
     return (
@@ -71,13 +76,15 @@ export const Person: React.FunctionComponent<IPersonProps> = (
           variant="smallPlus"
           block
           nowrap
-          styles={{ root: { fontWeight: 400 } }}
+          styles={{
+            root: { fontWeight: 400, ...(textColor ? { color: textColor } : {}) },
+          }}
         >
           {secondaryText}
         </Text>
       </>
     );
-  }, [secondaryText]);
+  }, [secondaryText, textColor]);
 
 
 

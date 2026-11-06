@@ -19,6 +19,7 @@ import {
 } from "@fluentui/react";
 
 import { useOrgChartStyles } from "./useOrgChartStyles";
+import { OrgChartThemeContext } from "../../common/OrgChartThemeContext";
 import "./OrgChart.module.scss";
 import { Placeholder } from "../Placeholder/PlaceholderComponent";
 import {getUsersByJobTitle,getUsersUnderManagerByJobTitle,matchesJobTitleExclude,} from "../../services/PeopleSearchService";
@@ -41,6 +42,14 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
   const { getUserProfile } = useGetUserProperties();
   const [state, dispatch] = React.useReducer(OrgChartReducer, initialState);
   const { orgChartClasses } = useOrgChartStyles();
+
+  // Admin-configured colours, shared with PersonCard/Person via context so
+  // they don't have to be threaded through every <PersonCard> call below.
+  const { backgroundColor, cardBackgroundColor, textColor } = props;
+  const themeColors = React.useMemo(
+    () => ({ backgroundColor, cardBackgroundColor, textColor }),
+    [backgroundColor, cardBackgroundColor, textColor]
+  );
 
   const {
     renderManagers,
@@ -829,12 +838,13 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
   const shouldUseLeadershipWidth = renderPeers.length > 0 || !!coLeadUser;
 
   return (
-    <>
+    <OrgChartThemeContext.Provider value={themeColors}>
       <Stack
         styles={{
           root: {
             padding: 20,
             alignItems: "center",
+            ...(backgroundColor ? { backgroundColor } : {}),
           },
         }}
       >
@@ -957,6 +967,6 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
           </div>
         )}
       </Stack>
-    </>
+    </OrgChartThemeContext.Provider>
   );
 };

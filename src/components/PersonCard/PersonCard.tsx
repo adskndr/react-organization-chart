@@ -5,9 +5,16 @@ import {
   DocumentCardActions,
   DocumentCardDetails,
   IDocumentCard,
+  IDocumentCardActionsStyles,
 } from "@fluentui/react/lib/DocumentCard";
 
-import { Stack, IButtonProps, PersonaSize } from "@fluentui/react";
+import {
+  Stack,
+  IButtonProps,
+  IButtonStyles,
+  PersonaSize,
+} from "@fluentui/react";
+import { useOrgChartColors } from "../../common/OrgChartThemeContext";
 import { LivePersona } from "@pnp/spfx-controls-react/lib/controls/LivePersona";
 import { Person } from "../Person/Person";
 import { usePersonaCardStyles } from "./usePersonaCardStyles";
@@ -21,10 +28,43 @@ export const PersonCard: React.FunctionComponent<IPersonCardProps> = (
   const documentCardRef = React.useRef<IDocumentCard>(null);
   const {
     personaCardStyles,
-    documentCardActionStyles,
-    buttonStyles,
+    documentCardActionStyles: baseActionStyles,
+    buttonStyles: baseButtonStyles,
     stackPersonaStyles,
   } = usePersonaCardStyles();
+
+  // Admin-configured colours (undefined = keep the SharePoint theme look).
+  const { cardBackgroundColor, textColor } = useOrgChartColors();
+
+  const documentCardActionStyles: Partial<IDocumentCardActionsStyles> =
+    React.useMemo(
+      () =>
+        cardBackgroundColor
+          ? {
+              ...baseActionStyles,
+              root: {
+                ...(baseActionStyles.root as object),
+                backgroundColor: cardBackgroundColor,
+              },
+            }
+          : baseActionStyles,
+      [baseActionStyles, cardBackgroundColor]
+    );
+
+  const buttonStyles: IButtonStyles = React.useMemo(
+    () =>
+      textColor
+        ? {
+            ...baseButtonStyles,
+            icon: { ...(baseButtonStyles.icon as object), color: textColor },
+            iconHovered: {
+              ...(baseButtonStyles.iconHovered as object),
+              color: textColor,
+            },
+          }
+        : baseButtonStyles,
+    [baseButtonStyles, textColor]
+  );
 
   const documentCardActions: IButtonProps[] = React.useMemo(() => {
     const cardActions: IButtonProps[] = [];
@@ -90,6 +130,18 @@ export const PersonCard: React.FunctionComponent<IPersonCardProps> = (
       <DocumentCard
         className={personaCardStyles.tile}
         componentRef={documentCardRef}
+        // Inline style so the admin colour always wins over the class-based
+        // default background from usePersonaCardStyles.
+        style={
+          cardBackgroundColor || textColor
+            ? {
+                ...(cardBackgroundColor
+                  ? { backgroundColor: cardBackgroundColor }
+                  : {}),
+                ...(textColor ? { color: textColor } : {}),
+              }
+            : undefined
+        }
         onClick={() => {
           if (userInfo.hasDirectReports) {
             onUserSelected(userInfo);

@@ -41,6 +41,13 @@ export interface IOrgChartProps {
    */
   jobTitleDirectReportsOnly?: boolean;
 
+  /** Chart background colour (admin-configurable). */
+  backgroundColor?: string;
+  /** Person card background colour (admin-configurable). */
+  cardBackgroundColor?: string;
+  /** Person card text colour (admin-configurable). */
+  textColor?: string;
+
   graphClient?: IGraphPhotoClient;
   sp: SPFI;
 }

@@ -10,5 +10,9 @@ define([], function() {
     "departmentFilterLabel": "Filter by department(s)",
     "departmentFilterTextLabel": "Or filter by free text",
     "departmentFilterTextDescription": "Matches departments containing this text, in addition to the selection above. Leave both empty to show everyone.",
+    "AppearanceGroupName": "Appearance (administrators only)",
+    "backgroundColorLabel": "Background colour",
+    "cardBackgroundColorLabel": "Person card colour",
+    "textColorLabel": "Text colour",
   }
 });

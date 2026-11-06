@@ -9,6 +9,10 @@ declare interface IOrganizationChartWebPartStrings {
   departmentFilterLabel:string;
   departmentFilterTextLabel:string;
   departmentFilterTextDescription:string;
+  AppearanceGroupName:string;
+  backgroundColorLabel:string;
+  cardBackgroundColorLabel:string;
+  textColorLabel:string;
 }
 
 declare module 'OrganizationChartWebPartStrings' {
