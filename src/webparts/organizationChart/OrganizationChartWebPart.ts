@@ -181,7 +181,6 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
         textColor: this.properties.textColor,
         graphClient: this._graphClient,
         sp: this.sp,
-        textColor: this.properties.textColor,
         cardBorderRadius: this.properties.cardBorderRadius,
       }
     );
