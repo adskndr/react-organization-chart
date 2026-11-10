@@ -47,6 +47,8 @@ export interface IOrgChartProps {
   cardBackgroundColor?: string;
   /** Person card text colour (admin-configurable). */
   textColor?: string;
+  /** Person card corner radius in px (admin-configurable). */
+  cardBorderRadius?: number;
 
   graphClient?: IGraphPhotoClient;
   sp: SPFI;
