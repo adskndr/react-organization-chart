@@ -188,9 +188,62 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
     );
 
     ReactDom.render(element, this.domElement);
+    this._applyWebPartCornerRadius();
+  }
+
+  // Elements we gave an inline border-radius, so we can reset them again.
+  private _roundedElements: HTMLElement[] = [];
+
+  /**
+   * Gives the web part itself rounded corners. The chart's own background is
+   * rounded in the React component, but SharePoint wraps every web part in
+   * containers that may paint their own (e.g. white) background; its square
+   * corners would show behind the rounded chart. So we apply the same
+   * border-radius to the web part element and to every ancestor that paints
+   * a background, up to (not including) the page section. Only border-radius
+   * is set (no overflow:hidden), so edit-mode toolbars are not clipped, and
+   * the backgrounds themselves stay as they are.
+   */
+  private _applyWebPartCornerRadius(): void {
+    this._roundedElements.forEach((el) => {
+      el.style.borderRadius = "";
+    });
+    this._roundedElements = [];
+
+    const radius = this.properties.backgroundBorderRadius ?? 0;
+    if (!radius) return;
+
+    const round = (el: HTMLElement): void => {
+      el.style.borderRadius = `${radius}px`;
+      this._roundedElements.push(el);
+    };
+
+    round(this.domElement);
+
+    let el: HTMLElement | null = this.domElement.parentElement;
+    for (let depth = 0; el && depth < 8; depth++) {
+      const automationId = el.getAttribute("data-automation-id") || "";
+      // Stop at the page section/zone: its background is the page itself.
+      if (
+        el === document.body ||
+        automationId.indexOf("CanvasZone") === 0 ||
+        automationId.indexOf("CanvasSection") === 0
+      ) {
+        break;
+      }
+      const bg = window.getComputedStyle(el).backgroundColor;
+      if (bg && bg !== "transparent" && bg !== "rgba(0, 0, 0, 0)") {
+        round(el);
+      }
+      el = el.parentElement;
+    }
   }
 
   protected onDispose(): void {
+    this._roundedElements.forEach((el) => {
+      el.style.borderRadius = "";
+    });
+    this._roundedElements = [];
     ReactDom.unmountComponentAtNode(this.domElement);
   }
 
