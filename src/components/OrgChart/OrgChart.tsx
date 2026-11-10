@@ -45,7 +45,13 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
 
   // Admin-configured colours, shared with PersonCard/Person via context so
   // they don't have to be threaded through every <PersonCard> call below.
-  const { backgroundColor, cardBackgroundColor, textColor, cardBorderRadius } = props;
+  const {
+    backgroundColor,
+    cardBackgroundColor,
+    textColor,
+    cardBorderRadius,
+    backgroundBorderRadius,
+  } = props;
   const themeColors = React.useMemo(
     () => ({ backgroundColor, cardBackgroundColor, textColor, cardBorderRadius }),
     [backgroundColor, cardBackgroundColor, textColor, cardBorderRadius]
@@ -845,6 +851,11 @@ export const OrgChart: React.FunctionComponent<IOrgChartProps> = (
             padding: 20,
             alignItems: "center",
             ...(backgroundColor ? { backgroundColor } : {}),
+            // Rounds the corners of the background area itself. No
+            // overflow:hidden here, so the card shadows are not clipped.
+            ...(backgroundBorderRadius
+              ? { borderRadius: backgroundBorderRadius }
+              : {}),
           },
         }}
       >
