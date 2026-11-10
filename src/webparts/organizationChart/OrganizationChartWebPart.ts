@@ -52,6 +52,7 @@ export interface IOrganizationChartWebPartProps {
   cardBackgroundColor?: string;
   textColor?: string;
   cardBorderRadius?: number;
+  backgroundBorderRadius?: number;
 }
 
 export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrganizationChartWebPartProps> {
@@ -182,6 +183,7 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
         graphClient: this._graphClient,
         sp: this.sp,
         cardBorderRadius: this.properties.cardBorderRadius,
+        backgroundBorderRadius: this.properties.backgroundBorderRadius,
       }
     );
 
@@ -227,6 +229,14 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
           style: PropertyFieldColorPickerStyle.Full,
           key: "backgroundColorFieldId",
         }),
+        PropertyPaneSlider("backgroundBorderRadius", {
+          label: strings.backgroundBorderRadiusLabel,
+          min: 0,
+          max: 50,
+          step: 1,
+          showValue: true,
+          value: this.properties.backgroundBorderRadius ?? 0,
+        }),
         PropertyFieldColorPicker("cardBackgroundColor", {
           label: strings.cardBackgroundColorLabel,
           selectedColor: this.properties.cardBackgroundColor,
@@ -247,7 +257,7 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
           style: PropertyFieldColorPickerStyle.Full,
           key: "textColorFieldId",
         }),
-          PropertyPaneSlider("cardBorderRadius", {
+        PropertyPaneSlider("cardBorderRadius", {
           label: strings.cardBorderRadiusLabel,
           min: 0,
           max: 30,
