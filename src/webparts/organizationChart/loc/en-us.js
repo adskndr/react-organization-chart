@@ -13,6 +13,7 @@ define([], function() {
     "AppearanceGroupName": "Appearance (administrators only)",
     "backgroundColorLabel": "Background colour",
     "cardBackgroundColorLabel": "Person card colour",
+    "cardBorderRadiusLabel": "Corner radius (px)",
     "textColorLabel": "Text colour",
   }
 });
