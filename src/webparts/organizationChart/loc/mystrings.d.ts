@@ -13,6 +13,7 @@ declare interface IOrganizationChartWebPartStrings {
   backgroundColorLabel:string;
   cardBackgroundColorLabel:string;
   textColorLabel:string;
+  cardBorderRadiusLabel:string;
 }
 
 declare module 'OrganizationChartWebPartStrings' {
