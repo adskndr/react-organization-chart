@@ -34,7 +34,7 @@ export const PersonCard: React.FunctionComponent<IPersonCardProps> = (
   } = usePersonaCardStyles();
 
   // Admin-configured colours (undefined = keep the SharePoint theme look).
-  const { cardBackgroundColor, textColor } = useOrgChartColors();
+  const { cardBackgroundColor, textColor, cardBorderRadius } = useOrgChartColors();
 
   const documentCardActionStyles: Partial<IDocumentCardActionsStyles> =
     React.useMemo(
@@ -132,16 +132,13 @@ export const PersonCard: React.FunctionComponent<IPersonCardProps> = (
         componentRef={documentCardRef}
         // Inline style so the admin colour always wins over the class-based
         // default background from usePersonaCardStyles.
-        style={
-          cardBackgroundColor || textColor
-            ? {
-                ...(cardBackgroundColor
-                  ? { backgroundColor: cardBackgroundColor }
-                  : {}),
-                ...(textColor ? { color: textColor } : {}),
-              }
-            : undefined
-        }
+        style={{
+          ...(cardBackgroundColor ? { backgroundColor: cardBackgroundColor } : {}),
+          ...(textColor ? { color: textColor } : {}),
+          ...(cardBorderRadius
+            ? { borderRadius: cardBorderRadius, overflow: "hidden" }
+            : {}),
+        }}
         onClick={() => {
           if (userInfo.hasDirectReports) {
             onUserSelected(userInfo);
