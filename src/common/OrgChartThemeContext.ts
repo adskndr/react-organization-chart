@@ -12,6 +12,8 @@ export interface IOrgChartColors {
   cardBackgroundColor?: string;
   /** Text colour on the person cards (name and job title). */
   textColor?: string;
+  /** Corner radius of the person cards in px. */
+  cardBorderRadius?: number;
 }
 
 export const OrgChartThemeContext = React.createContext<IOrgChartColors>({});
