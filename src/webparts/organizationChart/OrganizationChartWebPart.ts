@@ -8,6 +8,7 @@ import {
   IPropertyPaneGroup,
   PropertyPaneTextField,
   PropertyPaneToggle,
+  PropertyPaneSlider,
 } from "@microsoft/sp-property-pane";
 import { PropertyFieldMultiSelect } from "@pnp/spfx-property-controls/lib/PropertyFieldMultiSelect";
 import {
@@ -50,6 +51,7 @@ export interface IOrganizationChartWebPartProps {
   backgroundColor?: string;
   cardBackgroundColor?: string;
   textColor?: string;
+  cardBorderRadius?: number;
 }
 
 export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrganizationChartWebPartProps> {
@@ -179,6 +181,8 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
         textColor: this.properties.textColor,
         graphClient: this._graphClient,
         sp: this.sp,
+        textColor: this.properties.textColor,
+        cardBorderRadius: this.properties.cardBorderRadius,
       }
     );
 
@@ -243,6 +247,14 @@ export default class OrganizationChartWebPart extends BaseClientSideWebPart<IOrg
           alphaSliderHidden: true,
           style: PropertyFieldColorPickerStyle.Full,
           key: "textColorFieldId",
+        }),
+          PropertyPaneSlider("cardBorderRadius", {
+          label: strings.cardBorderRadiusLabel,
+          min: 0,
+          max: 30,
+          step: 1,
+          showValue: true,
+          value: this.properties.cardBorderRadius ?? 0,
         }),
       ],
     };
